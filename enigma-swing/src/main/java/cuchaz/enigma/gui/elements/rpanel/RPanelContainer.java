@@ -1,6 +1,7 @@
 package cuchaz.enigma.gui.elements.rpanel;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.Rectangle;
 import java.awt.event.ItemEvent;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ public class RPanelContainer extends JPanel implements RPanelHost {
 		} else {
 			buttons = new HashMap<>();
 			buttonPanel = new JPanel();
+			buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
 			JLayer<JPanel> layer = new JLayer<>(buttonPanel);
 			layer.setUI(new RotationLayerUI(buttonLocation.getRotation()));
 
