@@ -41,8 +41,9 @@ import cuchaz.enigma.gui.dialog.CrashDialog;
 import cuchaz.enigma.gui.dialog.JavadocDialog;
 import cuchaz.enigma.gui.dialog.SearchDialog;
 import cuchaz.enigma.gui.elements.*;
-import cuchaz.enigma.gui.elements.rpanel.DecoratedRPanelContainer;
 import cuchaz.enigma.gui.elements.rpanel.DecoratedRPanelContainer.ButtonLocation;
+import cuchaz.enigma.gui.elements.rpanel.DoubleRPanelContainer;
+import cuchaz.enigma.gui.elements.rpanel.RPanel;
 import cuchaz.enigma.gui.events.EditorActionListener;
 import cuchaz.enigma.gui.panels.*;
 import cuchaz.enigma.gui.renderer.CallsTreeCellRenderer;
@@ -93,7 +94,6 @@ public class Gui implements LanguageChangeListener {
 	private JTree implementationsTree;
 	private JTree callsTree;
 	private JList<Token> tokens;
-	private JTabbedPane tabs;
 
 	private JSplitPane splitCenter;
 	private JSplitPane splitRight;
@@ -115,9 +115,14 @@ public class Gui implements LanguageChangeListener {
 	private final JTabbedPane openFiles;
 	private final HashBiMap<ClassEntry, EditorPanel> editors = HashBiMap.create();
 
-	private final DecoratedRPanelContainer left;
-	private final DecoratedRPanelContainer right;
-	private final DecoratedRPanelContainer bottom;
+	private final DoubleRPanelContainer left;
+	private final DoubleRPanelContainer right;
+	private final DoubleRPanelContainer bottom;
+
+	private final RPanel structureRPanel;
+	private final RPanel inheritancePanel;
+	private final RPanel implementationsPanel;
+	private final RPanel callPanel;
 
 	public Gui(EnigmaProfile profile, Set<EditableType> editableTypes) {
 		this.editableTypes = editableTypes;
@@ -166,18 +171,21 @@ public class Gui implements LanguageChangeListener {
 		this.obfPanel = new ObfPanel(this);
 		this.deobfPanel = new DeobfPanel(this);
 
-		left = new DecoratedRPanelContainer(ButtonLocation.LEFT);
-		right = new DecoratedRPanelContainer(ButtonLocation.RIGHT);
-		bottom = new DecoratedRPanelContainer(ButtonLocation.BOTTOM);
+		left = new DoubleRPanelContainer(ButtonLocation.LEFT);
+		right = new DoubleRPanelContainer(ButtonLocation.RIGHT);
+		bottom = new DoubleRPanelContainer(ButtonLocation.BOTTOM);
 
-		left.getInner().attach(obfPanel.getPanel());
-		left.getInner().attach(deobfPanel.getPanel());
+		left.getRight().attach(obfPanel.getPanel());
+		left.getLeft().attach(deobfPanel.getPanel());
 
 		// init info panel
 		infoPanel = new IdentifierPanel(this);
 
 		// init structure panel
 		this.structurePanel = new StructurePanel(this);
+		this.structureRPanel = new RPanel();
+		this.structureRPanel.getContentPane().setLayout(new BorderLayout());
+		this.structureRPanel.getContentPane().add(new JScrollPane(this.structurePanel));
 
 		// init inheritance panel
 		inheritanceTree = new JTree();
@@ -209,9 +217,9 @@ public class Gui implements LanguageChangeListener {
 			}
 		});
 
-		JPanel inheritancePanel = new JPanel();
-		inheritancePanel.setLayout(new BorderLayout());
-		inheritancePanel.add(new JScrollPane(inheritanceTree));
+		inheritancePanel = new RPanel(I18n.translate("info_panel.tree.inheritance"));
+		inheritancePanel.getContentPane().setLayout(new BorderLayout());
+		inheritancePanel.getContentPane().add(new JScrollPane(inheritanceTree));
 
 		// init implementations panel
 		implementationsTree = new JTree();
@@ -238,9 +246,9 @@ public class Gui implements LanguageChangeListener {
 				}
 			}
 		});
-		JPanel implementationsPanel = new JPanel();
-		implementationsPanel.setLayout(new BorderLayout());
-		implementationsPanel.add(new JScrollPane(implementationsTree));
+		implementationsPanel = new RPanel(I18n.translate("info_panel.tree.implementations"));
+		implementationsPanel.getContentPane().setLayout(new BorderLayout());
+		implementationsPanel.getContentPane().add(new JScrollPane(implementationsTree));
 
 		// init call panel
 		callsTree = new JTree();
@@ -287,14 +295,16 @@ public class Gui implements LanguageChangeListener {
 		});
 		tokens.setPreferredSize(ScaleUtil.getDimension(0, 200));
 		tokens.setMinimumSize(ScaleUtil.getDimension(0, 200));
-		JSplitPane callPanel = new JSplitPane(
+		callPanel = new RPanel(I18n.translate("info_panel.tree.calls"));
+		JSplitPane callPanelContentPane = new JSplitPane(
 				JSplitPane.VERTICAL_SPLIT,
 				true,
 				new JScrollPane(callsTree),
 				new JScrollPane(tokens)
 		);
-		callPanel.setResizeWeight(1); // let the top side take all the slack
-		callPanel.resetToPreferredSizes();
+		callPanelContentPane.setResizeWeight(1); // let the top side take all the slack
+		callPanelContentPane.resetToPreferredSizes();
+		callPanel.setContentPane(callPanelContentPane);
 
 		editorTabPopupMenu = new EditorTabPopupMenu(this);
 		openFiles = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
@@ -331,12 +341,12 @@ public class Gui implements LanguageChangeListener {
 		centerPanel.setLayout(new BorderLayout());
 		centerPanel.add(infoPanel.getUi(), BorderLayout.NORTH);
 		centerPanel.add(openFiles, BorderLayout.CENTER);
-		tabs = new JTabbedPane();
-		tabs.setPreferredSize(ScaleUtil.getDimension(250, 0));
-		tabs.addTab(I18n.translate("info_panel.tree.structure"), structurePanel);
-		tabs.addTab(I18n.translate("info_panel.tree.inheritance"), inheritancePanel);
-		tabs.addTab(I18n.translate("info_panel.tree.implementations"), implementationsPanel);
-		tabs.addTab(I18n.translate("info_panel.tree.calls"), callPanel);
+
+		right.getUi().setPreferredSize(ScaleUtil.getDimension(250, 0));
+		right.getLeft().attach(structureRPanel);
+		right.getLeft().attach(inheritancePanel);
+		right.getLeft().attach(implementationsPanel);
+		right.getLeft().attach(callPanel);
 		logTabs = new CollapsibleTabbedPane(JTabbedPane.BOTTOM);
 		userModel = new DefaultListModel<>();
 		users = new JList<>(userModel);
@@ -361,10 +371,13 @@ public class Gui implements LanguageChangeListener {
 		messagePanel.add(chatPanel, BorderLayout.SOUTH);
 		logTabs.addTab(I18n.translate("log_panel.users"), new JScrollPane(this.users));
 		logTabs.addTab(I18n.translate("log_panel.messages"), messagePanel);
-		logSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, tabs, logTabs);
+		logSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, right.getUi(), logTabs);
 		logSplit.setResizeWeight(0.5);
 		logSplit.resetToPreferredSizes();
 		splitRight = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, centerPanel, this.logSplit);
+
+
+		JSplitPane splitRight = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, centerPanel, right.getUi());
 		splitRight.setResizeWeight(1); // let the left side take all the slack
 		splitRight.resetToPreferredSizes();
 		splitCenter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, this.left.getUi(), splitRight);
@@ -685,7 +698,7 @@ public class Gui implements LanguageChangeListener {
 			inheritanceTree.setSelectionRow(inheritanceTree.getRowForPath(path));
 		}
 
-		tabs.setSelectedIndex(1);
+		inheritancePanel.show();
 
 		redraw();
 	}
@@ -713,7 +726,7 @@ public class Gui implements LanguageChangeListener {
 			implementationsTree.setSelectionRow(implementationsTree.getRowForPath(path));
 		}
 
-		tabs.setSelectedIndex(2);
+		implementationsPanel.show();
 
 		redraw();
 	}
@@ -733,7 +746,7 @@ public class Gui implements LanguageChangeListener {
 			callsTree.setModel(new DefaultTreeModel(node));
 		}
 
-		tabs.setSelectedIndex(3);
+		callPanel.show();
 
 		redraw();
 	}
@@ -943,10 +956,10 @@ public class Gui implements LanguageChangeListener {
 
 		if (connectionState == ConnectionState.NOT_CONNECTED) {
 			logSplit.setLeftComponent(null);
-			splitRight.setRightComponent(tabs);
+			splitRight.setRightComponent(right.getUi());
 		} else {
 			splitRight.setRightComponent(logSplit);
-			logSplit.setLeftComponent(tabs);
+			logSplit.setLeftComponent(right.getUi());
 		}
 
 		splitRight.setDividerLocation(splitRight.getDividerLocation());
@@ -956,10 +969,10 @@ public class Gui implements LanguageChangeListener {
 	public void retranslateUi() {
 		this.jarFileChooser.setDialogTitle(I18n.translate("menu.file.jar.open"));
 		this.exportJarFileChooser.setDialogTitle(I18n.translate("menu.file.export.jar"));
-		this.tabs.setTitleAt(0, I18n.translate("info_panel.tree.structure"));
-		this.tabs.setTitleAt(1, I18n.translate("info_panel.tree.inheritance"));
-		this.tabs.setTitleAt(2, I18n.translate("info_panel.tree.implementations"));
-		this.tabs.setTitleAt(3, I18n.translate("info_panel.tree.calls"));
+		this.structureRPanel.setTitle(I18n.translate("info_panel.tree.structure"));
+		this.inheritancePanel.setTitle(I18n.translate("info_panel.tree.inheritance"));
+		this.implementationsPanel.setTitle(I18n.translate("info_panel.tree.implementations"));
+		this.callPanel.setTitle(I18n.translate("info_panel.tree.calls"));
 		this.logTabs.setTitleAt(0, I18n.translate("log_panel.users"));
 		this.logTabs.setTitleAt(1, I18n.translate("log_panel.messages"));
 		this.connectionStatusLabel.setText(I18n.translate(connectionState == ConnectionState.NOT_CONNECTED ? "status.disconnected" : "status.connected"));

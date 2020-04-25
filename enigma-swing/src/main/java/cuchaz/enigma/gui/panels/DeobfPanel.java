@@ -1,6 +1,7 @@
 package cuchaz.enigma.gui.panels;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -21,7 +22,7 @@ public class DeobfPanel {
 	public DeobfPanel(Gui gui) {
 		this.gui = gui;
 		this.panel = new RPanel(I18n.translate("info_panel.classes.deobfuscated"));
-		JPanel contentPane = panel.getContentPane();
+		Container contentPane = panel.getContentPane();
 
 		this.deobfClasses = new ClassSelector(gui, ClassSelector.DEOBF_CLASS_COMPARATOR, true);
 		this.deobfClasses.setSelectionListener(gui.getController()::navigateTo);

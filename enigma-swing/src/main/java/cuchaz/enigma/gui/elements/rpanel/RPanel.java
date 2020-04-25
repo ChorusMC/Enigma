@@ -1,12 +1,13 @@
 package cuchaz.enigma.gui.elements.rpanel;
 
+import java.awt.Container;
 import java.awt.Rectangle;
 
 import javax.swing.JPanel;
 
 public class RPanel {
 
-	private JPanel contentPane;
+	private Container contentPane;
 	private String title;
 
 	private RPanelHost host;
@@ -20,15 +21,34 @@ public class RPanel {
 		this.title = title;
 	}
 
-	public JPanel getContentPane() {
+	public Container getContentPane() {
 		return contentPane;
 	}
 
+	public void setContentPane(Container contentPane) {
+		this.contentPane = contentPane;
+
+		RPanelHost host = this.host;
+		if (host != null) {
+			System.err.println("WARNING: Set RPanel's content pane while it was attached. This is currently buggy!");
+			detach();
+			host.attach(this);
+		}
+	}
+
 	public void windowize() {
-		if (host == null || host.isDedicatedHost()) return;
+		if (host != null && host.isDedicatedHost()) return;
 
 		RPanelWindow window = new RPanelWindow();
 		attach(window);
+	}
+
+	public void show() {
+		if (host == null) {
+			windowize();
+		} else {
+			host.activate(this);
+		}
 	}
 
 	public void detach() {
@@ -44,9 +64,15 @@ public class RPanel {
 			return;
 		}
 
-		Rectangle currentPos = this.host.getPanelLocation(this);
+		Rectangle currentPos = null;
+
+		if (this.host != null) {
+			currentPos = this.host.getPanelLocation(this);
+		}
+
 		host.attach(this);
-		host.tryMoveTo(this, currentPos);
+
+		if (currentPos != null) host.tryMoveTo(this, currentPos);
 	}
 
 	public void setOwner(RPanelHost host) {

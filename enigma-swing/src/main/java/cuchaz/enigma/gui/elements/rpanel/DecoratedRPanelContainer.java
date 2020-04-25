@@ -2,14 +2,14 @@ package cuchaz.enigma.gui.elements.rpanel;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.Rectangle;
 import java.awt.event.ItemEvent;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
+import javax.swing.JComponent;
 import javax.swing.JLayer;
 import javax.swing.JPanel;
-import javax.swing.JRootPane;
 import javax.swing.JToggleButton;
 
 public class DecoratedRPanelContainer {
@@ -18,10 +18,6 @@ public class DecoratedRPanelContainer {
 
 	private final JPanel ui;
 	private final JPanel buttonPanel;
-
-	private final Map<RPanel, JToggleButton> buttons = new HashMap<>();
-
-	private boolean updatingButtons;
 
 	public DecoratedRPanelContainer(ButtonLocation buttonLocation) {
 		inner = new RPanelContainer();
@@ -51,53 +47,7 @@ public class DecoratedRPanelContainer {
 
 		ui.add(inner.getUi(), BorderLayout.CENTER);
 
-		inner.addRPanelListener(new RPanelListener() {
-			@Override
-			public void onAttach(RPanelHost host, RPanel panel) {
-				JToggleButton button = new JToggleButton(panel.getTitle());
-				button.addItemListener(event -> {
-					if (updatingButtons) return;
-
-					if (event.getStateChange() == ItemEvent.SELECTED) {
-						inner.activate(panel);
-					} else if (event.getStateChange() == ItemEvent.DESELECTED) {
-						inner.hide(panel);
-					}
-				});
-				buttonPanel.add(button);
-				buttons.put(panel, button);
-
-				ui.validate();
-			}
-
-			@Override
-			public void onDetach(RPanelHost host, RPanel panel) {
-				JToggleButton button = buttons.remove(panel);
-				buttonPanel.remove(button);
-
-				ui.validate();
-			}
-
-			@Override
-			public void onActivate(RPanelHost host, RPanel panel) {
-				try {
-					updatingButtons = true;
-					buttons.get(panel).setSelected(true);
-				} finally {
-					updatingButtons = false;
-				}
-			}
-
-			@Override
-			public void onHide(RPanelHost host, RPanel panel) {
-				try {
-					updatingButtons = true;
-					buttons.get(panel).setSelected(false);
-				} finally {
-					updatingButtons = false;
-				}
-			}
-		});
+		initListenerForButtonBar(ui, inner, buttonPanel::add, buttonPanel::remove);
 	}
 
 	public JPanel getUi() {
@@ -106,6 +56,59 @@ public class DecoratedRPanelContainer {
 
 	public RPanelContainer getInner() {
 		return inner;
+	}
+
+	public static void initListenerForButtonBar(JComponent ui, RPanelHost panelHost, Consumer<JToggleButton> addCallback, Consumer<JToggleButton> removeCallback) {
+		Map<RPanel, JToggleButton> buttons = new HashMap<>();
+		boolean[] updatingButtons = new boolean[]{false};
+
+		panelHost.addRPanelListener(new RPanelListener() {
+			@Override
+			public void onAttach(RPanelHost host, RPanel panel) {
+				JToggleButton button = new JToggleButton(panel.getTitle());
+				button.addItemListener(event -> {
+					if (updatingButtons[0]) return;
+
+					if (event.getStateChange() == ItemEvent.SELECTED) {
+						panelHost.activate(panel);
+					} else if (event.getStateChange() == ItemEvent.DESELECTED) {
+						panelHost.hide(panel);
+					}
+				});
+				addCallback.accept(button);
+				buttons.put(panel, button);
+
+				ui.validate();
+			}
+
+			@Override
+			public void onDetach(RPanelHost host, RPanel panel) {
+				JToggleButton button = buttons.remove(panel);
+				removeCallback.accept(button);
+
+				ui.validate();
+			}
+
+			@Override
+			public void onActivate(RPanelHost host, RPanel panel) {
+				try {
+					updatingButtons[0] = true;
+					buttons.get(panel).setSelected(true);
+				} finally {
+					updatingButtons[0] = false;
+				}
+			}
+
+			@Override
+			public void onHide(RPanelHost host, RPanel panel) {
+				try {
+					updatingButtons[0] = true;
+					buttons.get(panel).setSelected(false);
+				} finally {
+					updatingButtons[0] = false;
+				}
+			}
+		});
 	}
 
 	public enum ButtonLocation {
@@ -120,6 +123,7 @@ public class DecoratedRPanelContainer {
 		public int getRotation() {
 			return rotation;
 		}
+
 	}
 
 }

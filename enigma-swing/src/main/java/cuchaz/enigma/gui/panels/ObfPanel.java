@@ -1,9 +1,9 @@
 package cuchaz.enigma.gui.panels;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.util.Comparator;
 
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import cuchaz.enigma.gui.ClassSelector;
@@ -23,7 +23,7 @@ public class ObfPanel {
 	public ObfPanel(Gui gui) {
 		this.gui = gui;
 		this.panel = new RPanel(I18n.translate("info_panel.classes.obfuscated"));
-		JPanel contentPane = panel.getContentPane();
+		Container contentPane = panel.getContentPane();
 
 		Comparator<ClassEntry> obfClassComparator = (a, b) -> {
 			String aname = a.getFullName();
@@ -47,7 +47,6 @@ public class ObfPanel {
 	public void retranslateUi() {
 		this.panel.setTitle(I18n.translate("info_panel.classes.obfuscated"));
 	}
-
 
 	public RPanel getPanel() {
 		return panel;
