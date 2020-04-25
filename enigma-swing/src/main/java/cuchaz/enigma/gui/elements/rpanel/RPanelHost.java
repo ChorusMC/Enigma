@@ -12,13 +12,17 @@ public interface RPanelHost {
 
 	void titleChanged(RPanel panel);
 
-	Rectangle getPanelLocation(RPanel panel);
-
-	void tryMoveTo(RPanel panel, Rectangle rect);
-
 	void activate(RPanel panel);
 
 	void hide(RPanel panel);
+
+	void addRPanelListener(RPanelListener listener);
+
+	void removeRPanelListener(RPanelListener listener);
+
+	Rectangle getPanelLocation(RPanel panel);
+
+	void tryMoveTo(RPanel panel, Rectangle rect);
 
 	boolean isDedicatedHost();
 

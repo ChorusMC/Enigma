@@ -1,88 +1,47 @@
 package cuchaz.enigma.gui.elements.rpanel;
 
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.Rectangle;
-import java.awt.event.ItemEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JLayer;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.JToggleButton;
 
-public class RPanelContainer extends JPanel implements RPanelHost {
+public class RPanelContainer implements RPanelHost {
 
-	private final ButtonLocation buttonLocation;
+	private final JPanel ui;
 
-	private final List<RPanel> panels = new ArrayList<>();
+	private final Map<RPanel, StandaloneRootPane> panels = new HashMap<>();
 	private RPanel openPanel = null;
 
-	private final Map<RPanel, JToggleButton> buttons;
-	private final JPanel buttonPanel;
-
-	private boolean updatingButtons;
+	private List<RPanelListener> listeners = new ArrayList<>();
 
 	public RPanelContainer() {
-		this(ButtonLocation.NONE);
+		ui = new JPanel();
+		ui.setLayout(new BorderLayout());
 	}
 
-	public RPanelContainer(ButtonLocation buttonLocation) {
-		this.setLayout(new BorderLayout());
-
-		this.buttonLocation = buttonLocation;
-
-		if (buttonLocation == ButtonLocation.NONE) {
-			buttonPanel = null;
-			buttons = null;
-		} else {
-			buttons = new HashMap<>();
-			buttonPanel = new JPanel();
-			buttonPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
-			JLayer<JPanel> layer = new JLayer<>(buttonPanel);
-			layer.setUI(new RotationLayerUI(buttonLocation.getRotation()));
-
-			switch (buttonLocation) {
-				case TOP:
-					this.add(layer, BorderLayout.NORTH);
-					break;
-				case BOTTOM:
-					this.add(layer, BorderLayout.SOUTH);
-					break;
-				case LEFT:
-					this.add(layer, BorderLayout.WEST);
-					break;
-				case RIGHT:
-					this.add(layer, BorderLayout.EAST);
-					break;
-			}
-		}
-
+	public JPanel getUi() {
+		return ui;
 	}
 
 	@Override
 	public void attach(RPanel panel) {
 		if (owns(panel)) return;
 
-		panels.add(panel);
+		StandaloneRootPane rp = new StandaloneRootPane();
+		rp.addCloseListener(() -> detach(panel));
+		rp.setTitle(panel.getTitle());
+		rp.setContentPane(panel.getContentPane());
+
+		panels.put(panel, rp);
 		panel.setOwner(this);
 
-		if (buttonLocation != ButtonLocation.NONE) {
-			JToggleButton button = new JToggleButton(panel.getTitle());
-			button.addItemListener(event -> {
-				if (updatingButtons) return;
-
-				if (event.getStateChange() == ItemEvent.SELECTED) {
-					activate(panel);
-				} else if (event.getStateChange() == ItemEvent.DESELECTED) {
-					hide(panel);
-				}
-			});
-			buttons.put(panel, button);
-			buttonPanel.add(button);
-		}
+		listeners.forEach(l -> l.onAttach(this, panel));
 
 		activate(panel);
 	}
@@ -93,39 +52,28 @@ public class RPanelContainer extends JPanel implements RPanelHost {
 
 		hide(panel);
 
-		panels.remove(panel);
+		StandaloneRootPane rp = panels.remove(panel);
 		panel.setOwner(null);
 
-		if (buttonLocation != ButtonLocation.NONE) {
-			JToggleButton button = buttons.remove(panel);
-			buttonPanel.remove(button);
-		}
+		rp.setContentPane(new JPanel());
+
+		listeners.forEach(l -> l.onDetach(this, panel));
+
+		this.ui.validate();
 	}
 
 	@Override
 	public boolean owns(RPanel panel) {
-		return panel != null && panels.contains(panel);
+		return panel != null && panels.containsKey(panel);
 	}
 
 	@Override
 	public void titleChanged(RPanel panel) {
-		JToggleButton button = this.buttons.get(panel);
+		StandaloneRootPane pane = this.panels.get(panel);
 
-		if (button != null) {
-			button.setText(panel.getTitle());
+		if (pane != null) {
+			pane.setTitle(panel.getTitle());
 		}
-	}
-
-	@Override
-	public Rectangle getPanelLocation(RPanel panel) {
-		if (!owns(panel)) return null;
-
-		return getBounds();
-	}
-
-	@Override
-	public void tryMoveTo(RPanel panel, Rectangle rect) {
-		// no
 	}
 
 	@Override
@@ -134,16 +82,15 @@ public class RPanelContainer extends JPanel implements RPanelHost {
 
 		hide(openPanel);
 		openPanel = panel;
-		this.add(panel.getContentPane(), BorderLayout.CENTER);
 
-		if (buttonLocation != ButtonLocation.NONE) {
-			try {
-				updatingButtons = true;
-				buttons.get(panel).setSelected(true);
-			} finally {
-				updatingButtons = false;
-			}
-		}
+		StandaloneRootPane rp = panels.get(panel);
+		this.ui.add(rp, BorderLayout.CENTER);
+		rp.setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
+
+		listeners.forEach(l -> l.onActivate(this, panel));
+
+		this.ui.validate();
+		this.ui.repaint();
 	}
 
 	@Override
@@ -151,40 +98,39 @@ public class RPanelContainer extends JPanel implements RPanelHost {
 		if (!owns(panel)) return;
 		if (openPanel != panel) return;
 
-		this.remove(openPanel.getContentPane());
+		this.ui.remove(panels.get(openPanel));
 		openPanel = null;
 
-		if (buttonLocation != ButtonLocation.NONE) {
-			try {
-				updatingButtons = true;
-				buttons.get(panel).setSelected(false);
-			} finally {
-				updatingButtons = false;
-			}
-		}
+		listeners.forEach(l -> l.onHide(this, panel));
+
+		this.ui.repaint();
+	}
+
+	@Override
+	public void addRPanelListener(RPanelListener listener) {
+		listeners.add(listener);
+	}
+
+	@Override
+	public void removeRPanelListener(RPanelListener listener) {
+		listeners.remove(listener);
+	}
+
+	@Override
+	public Rectangle getPanelLocation(RPanel panel) {
+		if (!owns(panel)) return null;
+
+		return this.ui.getBounds();
+	}
+
+	@Override
+	public void tryMoveTo(RPanel panel, Rectangle rect) {
+		// no
 	}
 
 	@Override
 	public boolean isDedicatedHost() {
 		return false;
-	}
-
-	public enum ButtonLocation {
-		NONE, TOP(2), BOTTOM(0), LEFT(1), RIGHT(3);
-
-		private final int rotation;
-
-		ButtonLocation() {
-			this(0);
-		}
-
-		ButtonLocation(int rotation) {
-			this.rotation = rotation;
-		}
-
-		public int getRotation() {
-			return rotation;
-		}
 	}
 
 }

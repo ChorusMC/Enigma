@@ -48,8 +48,28 @@ public class RPanelWindow extends JFrame implements RPanelHost {
 	}
 
 	@Override
-	public boolean isDedicatedHost() {
-		return true;
+	public void activate(RPanel panel) {
+		if (!owns(panel)) return;
+
+		setVisible(true);
+		requestFocus();
+	}
+
+	@Override
+	public void hide(RPanel panel) {
+		if (!owns(panel)) return;
+
+		setVisible(false);
+	}
+
+	@Override
+	public void addRPanelListener(RPanelListener listener) {
+		throw new IllegalStateException("not implemented");
+	}
+
+	@Override
+	public void removeRPanelListener(RPanelListener listener) {
+		throw new IllegalStateException("not implemented");
 	}
 
 	@Override
@@ -67,17 +87,8 @@ public class RPanelWindow extends JFrame implements RPanelHost {
 	}
 
 	@Override
-	public void activate(RPanel panel) {
-		if (!owns(panel)) return;
-
-		setVisible(true);
-		requestFocus();
+	public boolean isDedicatedHost() {
+		return true;
 	}
 
-	@Override
-	public void hide(RPanel panel) {
-		if (!owns(panel)) return;
-
-		setVisible(false);
-	}
 }

@@ -41,8 +41,8 @@ import cuchaz.enigma.gui.dialog.CrashDialog;
 import cuchaz.enigma.gui.dialog.JavadocDialog;
 import cuchaz.enigma.gui.dialog.SearchDialog;
 import cuchaz.enigma.gui.elements.*;
-import cuchaz.enigma.gui.elements.rpanel.RPanelContainer;
-import cuchaz.enigma.gui.elements.rpanel.RPanelContainer.ButtonLocation;
+import cuchaz.enigma.gui.elements.rpanel.DecoratedRPanelContainer;
+import cuchaz.enigma.gui.elements.rpanel.DecoratedRPanelContainer.ButtonLocation;
 import cuchaz.enigma.gui.events.EditorActionListener;
 import cuchaz.enigma.gui.panels.*;
 import cuchaz.enigma.gui.renderer.CallsTreeCellRenderer;
@@ -115,9 +115,9 @@ public class Gui implements LanguageChangeListener {
 	private final JTabbedPane openFiles;
 	private final HashBiMap<ClassEntry, EditorPanel> editors = HashBiMap.create();
 
-	private final RPanelContainer left;
-	private final RPanelContainer right;
-	private final RPanelContainer bottom;
+	private final DecoratedRPanelContainer left;
+	private final DecoratedRPanelContainer right;
+	private final DecoratedRPanelContainer bottom;
 
 	public Gui(EnigmaProfile profile, Set<EditableType> editableTypes) {
 		this.editableTypes = editableTypes;
@@ -166,12 +166,12 @@ public class Gui implements LanguageChangeListener {
 		this.obfPanel = new ObfPanel(this);
 		this.deobfPanel = new DeobfPanel(this);
 
-		left = new RPanelContainer(ButtonLocation.LEFT);
-		right = new RPanelContainer(ButtonLocation.RIGHT);
-		bottom = new RPanelContainer(ButtonLocation.BOTTOM);
+		left = new DecoratedRPanelContainer(ButtonLocation.LEFT);
+		right = new DecoratedRPanelContainer(ButtonLocation.RIGHT);
+		bottom = new DecoratedRPanelContainer(ButtonLocation.BOTTOM);
 
-		left.attach(obfPanel.getPanel());
-		left.attach(deobfPanel.getPanel());
+		left.getInner().attach(obfPanel.getPanel());
+		left.getInner().attach(deobfPanel.getPanel());
 
 		// init info panel
 		infoPanel = new IdentifierPanel(this);
@@ -367,7 +367,7 @@ public class Gui implements LanguageChangeListener {
 		splitRight = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, centerPanel, this.logSplit);
 		splitRight.setResizeWeight(1); // let the left side take all the slack
 		splitRight.resetToPreferredSizes();
-		splitCenter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, this.left, splitRight);
+		splitCenter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, this.left.getUi(), splitRight);
 		splitCenter.setResizeWeight(0); // let the right side take all the slack
 		pane.add(splitCenter, BorderLayout.CENTER);
 

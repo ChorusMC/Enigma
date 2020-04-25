@@ -24,7 +24,13 @@ public class RotationLayerUI extends LayerUI<JComponent> {
 	@Override
 	public void paint(Graphics g, JComponent c) {
 		Graphics2D g2d = (Graphics2D) g;
-		g2d.translate(0, c.getHeight());
+		if (rotation == 1) {
+			g2d.translate(0, c.getHeight());
+		} else if (rotation == 2) {
+			g2d.translate(c.getWidth(), c.getHeight());
+		} else if (rotation == 3) {
+			g2d.translate(c.getWidth(), 0);
+		}
 		g2d.rotate(-rotation * (Math.PI * 0.5));
 		super.paint(g2d, c);
 	}
