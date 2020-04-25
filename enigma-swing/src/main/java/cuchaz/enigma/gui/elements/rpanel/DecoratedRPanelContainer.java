@@ -79,6 +79,7 @@ public class DecoratedRPanelContainer {
 				buttons.put(panel, button);
 
 				ui.validate();
+				ui.repaint();
 			}
 
 			@Override
@@ -87,6 +88,7 @@ public class DecoratedRPanelContainer {
 				removeCallback.accept(button);
 
 				ui.validate();
+				ui.repaint();
 			}
 
 			@Override
