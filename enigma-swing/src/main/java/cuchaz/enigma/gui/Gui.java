@@ -41,6 +41,8 @@ import cuchaz.enigma.gui.dialog.CrashDialog;
 import cuchaz.enigma.gui.dialog.JavadocDialog;
 import cuchaz.enigma.gui.dialog.SearchDialog;
 import cuchaz.enigma.gui.elements.*;
+import cuchaz.enigma.gui.elements.rpanel.RPanelContainer;
+import cuchaz.enigma.gui.elements.rpanel.RPanelContainer.ButtonLocation;
 import cuchaz.enigma.gui.events.EditorActionListener;
 import cuchaz.enigma.gui.panels.*;
 import cuchaz.enigma.gui.renderer.CallsTreeCellRenderer;
@@ -113,6 +115,10 @@ public class Gui implements LanguageChangeListener {
 	private final JTabbedPane openFiles;
 	private final HashBiMap<ClassEntry, EditorPanel> editors = HashBiMap.create();
 
+	private final RPanelContainer left;
+	private final RPanelContainer right;
+	private final RPanelContainer bottom;
+
 	public Gui(EnigmaProfile profile, Set<EditableType> editableTypes) {
 		this.editableTypes = editableTypes;
 
@@ -160,12 +166,12 @@ public class Gui implements LanguageChangeListener {
 		this.obfPanel = new ObfPanel(this);
 		this.deobfPanel = new DeobfPanel(this);
 
-		// set up classes panel (don't add the splitter yet)
-		splitClasses = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, this.obfPanel, this.deobfPanel);
-		splitClasses.setResizeWeight(0.3);
-		this.classesPanel = new JPanel();
-		this.classesPanel.setLayout(new BorderLayout());
-		this.classesPanel.setPreferredSize(ScaleUtil.getDimension(250, 0));
+		left = new RPanelContainer(ButtonLocation.LEFT);
+		right = new RPanelContainer(ButtonLocation.RIGHT);
+		bottom = new RPanelContainer(ButtonLocation.BOTTOM);
+
+		left.attach(obfPanel.getPanel());
+		left.attach(deobfPanel.getPanel());
 
 		// init info panel
 		infoPanel = new IdentifierPanel(this);
@@ -361,7 +367,7 @@ public class Gui implements LanguageChangeListener {
 		splitRight = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, centerPanel, this.logSplit);
 		splitRight.setResizeWeight(1); // let the left side take all the slack
 		splitRight.resetToPreferredSizes();
-		splitCenter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, this.classesPanel, splitRight);
+		splitCenter = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, this.left, splitRight);
 		splitCenter.setResizeWeight(0); // let the right side take all the slack
 		pane.add(splitCenter, BorderLayout.CENTER);
 
@@ -423,29 +429,29 @@ public class Gui implements LanguageChangeListener {
 	public GuiController getController() {
 		return this.controller;
 	}
-	
+
 	public void setSingleClassTree(boolean singleClassTree) {
 		this.singleClassTree = singleClassTree;
-		this.classesPanel.removeAll();
-		this.classesPanel.add(isSingleClassTree() ? deobfPanel : splitClasses);
+		// this.classesPanel.removeAll();
+		// this.classesPanel.add(isSingleClassTree() ? deobfPanel : splitClasses);
 		getController().refreshClasses();
 		retranslateUi();
 	}
-	
+
 	public boolean isSingleClassTree() {
 		return singleClassTree;
 	}
-	
+
 	public void onStartOpenJar() {
-		this.classesPanel.removeAll();
+//		this.classesPanel.removeAll();
 		redraw();
 	}
 
 	public void onFinishOpenJar(String jarName) {
 		// update gui
 		this.frame.setTitle(Enigma.NAME + " - " + jarName);
-		this.classesPanel.removeAll();
-		this.classesPanel.add(isSingleClassTree() ? deobfPanel : splitClasses);
+//		this.classesPanel.removeAll();
+//		this.classesPanel.add(isSingleClassTree() ? deobfPanel : splitClasses);
 		closeAllEditorTabs();
 
 		// update menu
@@ -461,7 +467,7 @@ public class Gui implements LanguageChangeListener {
 		setObfClasses(null);
 		setDeobfClasses(null);
 		closeAllEditorTabs();
-		this.classesPanel.removeAll();
+//		this.classesPanel.removeAll();
 
 		// update menu
 		isJarOpen = false;
