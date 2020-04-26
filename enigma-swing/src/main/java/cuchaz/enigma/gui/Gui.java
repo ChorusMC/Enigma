@@ -346,7 +346,9 @@ public class Gui implements LanguageChangeListener {
 		right.getLeft().attach(structureRPanel);
 		right.getLeft().attach(inheritancePanel);
 		right.getLeft().attach(implementationsPanel);
-		right.getLeft().attach(callPanel);
+		//right.getLeft().attach(callPanel);
+		callPanel.windowize();
+
 		logTabs = new CollapsibleTabbedPane(JTabbedPane.BOTTOM);
 		userModel = new DefaultListModel<>();
 		users = new JList<>(userModel);
@@ -375,7 +377,6 @@ public class Gui implements LanguageChangeListener {
 		logSplit.setResizeWeight(0.5);
 		logSplit.resetToPreferredSizes();
 		splitRight = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, centerPanel, this.logSplit);
-
 
 		JSplitPane splitRight = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, centerPanel, right.getUi());
 		splitRight.setResizeWeight(1); // let the left side take all the slack
