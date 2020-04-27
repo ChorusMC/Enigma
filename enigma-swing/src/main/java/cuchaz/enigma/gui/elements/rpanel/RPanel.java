@@ -2,6 +2,7 @@ package cuchaz.enigma.gui.elements.rpanel;
 
 import java.awt.Container;
 import java.awt.Rectangle;
+import java.util.*;
 
 import javax.swing.JPanel;
 
@@ -11,6 +12,7 @@ public class RPanel {
 	private String title;
 
 	private RPanelHost host;
+	private Set<RPanelHost> dndContainers = new HashSet<>();
 
 	public RPanel() {
 		this("");
@@ -92,6 +94,18 @@ public class RPanel {
 
 	public String getTitle() {
 		return title;
+	}
+
+	public void addDragTarget(RPanelHost host) {
+		dndContainers.add(host);
+	}
+
+	public void removeDragTarget(RPanelHost host) {
+		dndContainers.remove(host);
+	}
+
+	public Set<RPanelHost> getDragTargets() {
+		return Collections.unmodifiableSet(dndContainers);
 	}
 
 }

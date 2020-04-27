@@ -346,8 +346,7 @@ public class Gui implements LanguageChangeListener {
 		right.getLeft().attach(structureRPanel);
 		right.getLeft().attach(inheritancePanel);
 		right.getLeft().attach(implementationsPanel);
-		//right.getLeft().attach(callPanel);
-		callPanel.windowize();
+		right.getLeft().attach(callPanel);
 
 		logTabs = new CollapsibleTabbedPane(JTabbedPane.BOTTOM);
 		userModel = new DefaultListModel<>();
@@ -393,6 +392,19 @@ public class Gui implements LanguageChangeListener {
 			this.splitRight.setDividerLocation(layout[2]);
 			this.logSplit.setDividerLocation(layout[3]);
 		}
+
+		left.addDragTarget(structureRPanel);
+		left.addDragTarget(inheritancePanel);
+		left.addDragTarget(implementationsPanel);
+		left.addDragTarget(callPanel);
+		left.addDragTarget(obfPanel.getPanel());
+		left.addDragTarget(deobfPanel.getPanel());
+		right.addDragTarget(structureRPanel);
+		right.addDragTarget(inheritancePanel);
+		right.addDragTarget(implementationsPanel);
+		right.addDragTarget(callPanel);
+		right.addDragTarget(obfPanel.getPanel());
+		right.addDragTarget(deobfPanel.getPanel());
 
 		// init menus
 		this.menuBar = new MenuBar(this);

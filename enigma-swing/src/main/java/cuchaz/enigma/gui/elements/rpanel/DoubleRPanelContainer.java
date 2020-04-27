@@ -79,4 +79,9 @@ public class DoubleRPanelContainer {
 		return right;
 	}
 
+	public void addDragTarget(RPanel panel) {
+		panel.addDragTarget(this.left);
+		panel.addDragTarget(this.right);
+	}
+
 }

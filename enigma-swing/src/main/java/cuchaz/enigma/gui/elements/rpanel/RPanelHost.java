@@ -24,6 +24,10 @@ public interface RPanelHost {
 
 	void tryMoveTo(RPanel panel, Rectangle rect);
 
+	Rectangle getDragInsertBounds();
+
+	boolean onDragOver(RPanel panel);
+
 	boolean isDedicatedHost();
 
 }

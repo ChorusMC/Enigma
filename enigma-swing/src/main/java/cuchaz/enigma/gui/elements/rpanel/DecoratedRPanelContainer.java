@@ -58,6 +58,10 @@ public class DecoratedRPanelContainer {
 		return inner;
 	}
 
+	public void addDragTarget(RPanel panel) {
+		panel.addDragTarget(this.inner);
+	}
+
 	public static void initListenerForButtonBar(JComponent ui, RPanelHost panelHost, Consumer<JToggleButton> addCallback, Consumer<JToggleButton> removeCallback) {
 		Map<RPanel, JToggleButton> buttons = new HashMap<>();
 		boolean[] updatingButtons = new boolean[]{false};

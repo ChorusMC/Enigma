@@ -2,6 +2,7 @@ package cuchaz.enigma.gui.elements.rpanel;
 
 import java.awt.BorderLayout;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,17 +34,29 @@ public class RPanelContainer implements RPanelHost {
 	public void attach(RPanel panel) {
 		if (owns(panel)) return;
 
+		JPanel dummy = new JPanel();
 		StandaloneRootPane rp = new StandaloneRootPane();
 		rp.addCloseListener(() -> detach(panel));
 		rp.setTitle(panel.getTitle());
 		rp.setContentPane(panel.getContentPane());
+		dummy.add(rp);
+		rp.setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
+		RootPaneUtil.registerDragListener(rp, new WindowDragListener() {
+			@Override
+			public void onDragMove(Window w) {
+				panel.windowize();
+			}
+		});
+		dummy.remove(rp);
 
 		panels.put(panel, rp);
 		panel.setOwner(this);
 
 		listeners.forEach(l -> l.onAttach(this, panel));
 
-		activate(panel);
+		if (openPanel == null) {
+			activate(panel);
+		}
 	}
 
 	@Override
@@ -85,7 +98,6 @@ public class RPanelContainer implements RPanelHost {
 
 		StandaloneRootPane rp = panels.get(panel);
 		this.ui.add(rp, BorderLayout.CENTER);
-		rp.setWindowDecorationStyle(JRootPane.PLAIN_DIALOG);
 
 		listeners.forEach(l -> l.onActivate(this, panel));
 
@@ -120,12 +132,27 @@ public class RPanelContainer implements RPanelHost {
 	public Rectangle getPanelLocation(RPanel panel) {
 		if (!owns(panel)) return null;
 
-		return this.ui.getBounds();
+		Rectangle bounds = this.ui.getBounds();
+		bounds.setLocation(this.ui.getLocationOnScreen());
+		return bounds;
 	}
 
 	@Override
 	public void tryMoveTo(RPanel panel, Rectangle rect) {
 		// no
+	}
+
+	@Override
+	public Rectangle getDragInsertBounds() {
+		Rectangle bounds = this.ui.getBounds();
+		bounds.setLocation(this.ui.getLocationOnScreen());
+		return bounds;
+	}
+
+	@Override
+	public boolean onDragOver(RPanel panel) {
+		// TODO draw
+		return true;
 	}
 
 	@Override
