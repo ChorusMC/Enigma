@@ -342,6 +342,7 @@ public class Gui implements LanguageChangeListener {
 		centerPanel.add(infoPanel.getUi(), BorderLayout.NORTH);
 		centerPanel.add(openFiles, BorderLayout.CENTER);
 
+		left.getUi().setPreferredSize(ScaleUtil.getDimension(300, 0));
 		right.getUi().setPreferredSize(ScaleUtil.getDimension(250, 0));
 		right.getLeft().attach(structureRPanel);
 		right.getLeft().attach(inheritancePanel);
