@@ -2,7 +2,9 @@ package cuchaz.enigma.gui.elements.rpanel;
 
 import java.awt.Container;
 import java.awt.Rectangle;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.JPanel;
 
@@ -85,6 +87,10 @@ public class RPanel {
 		}
 
 		this.host = host;
+	}
+
+	public void setVisible(boolean visible) {
+		// TODO
 	}
 
 	public void setTitle(String title) {
