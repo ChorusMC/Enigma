@@ -16,6 +16,8 @@ public class RPanel {
 	private RPanelHost host;
 	private Set<RPanelHost> dndContainers = new HashSet<>();
 
+	private boolean visible = true;
+
 	public RPanel() {
 		this("");
 	}
@@ -90,7 +92,16 @@ public class RPanel {
 	}
 
 	public void setVisible(boolean visible) {
-		// TODO
+		if (this.visible != visible) {
+			this.visible = visible;
+			if (host != null) {
+				host.updateVisibleState(this);
+			}
+		}
+	}
+
+	public boolean isVisible() {
+		return visible;
 	}
 
 	public void setTitle(String title) {

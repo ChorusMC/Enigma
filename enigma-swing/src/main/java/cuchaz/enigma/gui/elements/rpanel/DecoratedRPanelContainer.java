@@ -67,20 +67,35 @@ public class DecoratedRPanelContainer {
 		boolean[] updatingButtons = new boolean[]{false};
 
 		panelHost.addRPanelListener(new RPanelListener() {
-			@Override
-			public void onAttach(RPanelHost host, RPanel panel) {
+			private void addButtonFor(RPanelHost host, RPanel panel) {
+				if (buttons.containsKey(panel)) return;
 				JToggleButton button = new JToggleButton(panel.getTitle());
+				if (host.getActivePanel() == panel) {
+					button.setSelected(true);
+				}
 				button.addItemListener(event -> {
 					if (updatingButtons[0]) return;
 
 					if (event.getStateChange() == ItemEvent.SELECTED) {
 						panelHost.activate(panel);
 					} else if (event.getStateChange() == ItemEvent.DESELECTED) {
-						panelHost.hide(panel);
+						panelHost.minimize(panel);
 					}
 				});
 				addCallback.accept(button);
 				buttons.put(panel, button);
+			}
+
+			private void removeButtonFor(RPanelHost host, RPanel panel) {
+				JToggleButton button = buttons.remove(panel);
+				removeCallback.accept(button);
+			}
+
+			@Override
+			public void onAttach(RPanelHost host, RPanel panel) {
+				if (panel.isVisible()) {
+					addButtonFor(host, panel);
+				}
 
 				ui.validate();
 				ui.repaint();
@@ -88,8 +103,7 @@ public class DecoratedRPanelContainer {
 
 			@Override
 			public void onDetach(RPanelHost host, RPanel panel) {
-				JToggleButton button = buttons.remove(panel);
-				removeCallback.accept(button);
+				removeButtonFor(host, panel);
 
 				ui.validate();
 				ui.repaint();
@@ -99,17 +113,37 @@ public class DecoratedRPanelContainer {
 			public void onActivate(RPanelHost host, RPanel panel) {
 				try {
 					updatingButtons[0] = true;
-					buttons.get(panel).setSelected(true);
+					JToggleButton button = buttons.get(panel);
+					if (button != null) {
+						button.setSelected(true);
+					}
 				} finally {
 					updatingButtons[0] = false;
 				}
 			}
 
 			@Override
-			public void onHide(RPanelHost host, RPanel panel) {
+			public void onMinimize(RPanelHost host, RPanel panel) {
 				try {
 					updatingButtons[0] = true;
-					buttons.get(panel).setSelected(false);
+					JToggleButton button = buttons.get(panel);
+					if (button != null) {
+						button.setSelected(false);
+					}
+				} finally {
+					updatingButtons[0] = false;
+				}
+			}
+
+			@Override
+			public void onVisibleStateChange(RPanelHost host, RPanel panel) {
+				try {
+					updatingButtons[0] = true;
+					if (panel.isVisible()) {
+						addButtonFor(host, panel);
+					} else {
+						removeButtonFor(host, panel);
+					}
 				} finally {
 					updatingButtons[0] = false;
 				}
@@ -129,7 +163,6 @@ public class DecoratedRPanelContainer {
 		public int getRotation() {
 			return rotation;
 		}
-
 	}
 
 }

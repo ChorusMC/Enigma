@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
 import javax.swing.JToggleButton;
@@ -63,7 +64,7 @@ public class RPanelContainer implements RPanelHost {
 	public void detach(RPanel panel) {
 		if (!owns(panel)) return;
 
-		hide(panel);
+		minimize(panel);
 
 		StandaloneRootPane rp = panels.remove(panel);
 		panel.setOwner(null);
@@ -80,6 +81,12 @@ public class RPanelContainer implements RPanelHost {
 		return panel != null && panels.containsKey(panel);
 	}
 
+	@Nullable
+	@Override
+	public RPanel getActivePanel() {
+		return openPanel;
+	}
+
 	@Override
 	public void titleChanged(RPanel panel) {
 		StandaloneRootPane pane = this.panels.get(panel);
@@ -92,8 +99,9 @@ public class RPanelContainer implements RPanelHost {
 	@Override
 	public void activate(RPanel panel) {
 		if (!owns(panel)) return;
+		if (!panel.isVisible()) return;
 
-		hide(openPanel);
+		minimize(openPanel);
 		openPanel = panel;
 
 		StandaloneRootPane rp = panels.get(panel);
@@ -106,14 +114,14 @@ public class RPanelContainer implements RPanelHost {
 	}
 
 	@Override
-	public void hide(RPanel panel) {
+	public void minimize(RPanel panel) {
 		if (!owns(panel)) return;
 		if (openPanel != panel) return;
 
 		this.ui.remove(panels.get(openPanel));
 		openPanel = null;
 
-		listeners.forEach(l -> l.onHide(this, panel));
+		listeners.forEach(l -> l.onMinimize(this, panel));
 
 		this.ui.repaint();
 	}
@@ -126,6 +134,19 @@ public class RPanelContainer implements RPanelHost {
 	@Override
 	public void removeRPanelListener(RPanelListener listener) {
 		listeners.remove(listener);
+	}
+
+	@Override
+	public void updateVisibleState(RPanel panel) {
+		if (!owns(panel)) return;
+
+		if (!panel.isVisible() && openPanel == panel) {
+			minimize(panel);
+		} else if (panel.isVisible() && openPanel == null) {
+			activate(panel);
+		}
+
+		listeners.forEach(l -> l.onVisibleStateChange(this, panel));
 	}
 
 	@Override

@@ -4,6 +4,7 @@ import java.awt.Rectangle;
 import java.awt.Window;
 import java.util.Comparator;
 
+import javax.annotation.Nullable;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
@@ -16,6 +17,7 @@ public class RPanelWindow implements RPanelHost {
 	private RPanel panel;
 
 	private long lastDragOp;
+	private boolean isMinimized;
 
 	public RPanelWindow() {
 		this.ui = new JFrame();
@@ -72,6 +74,16 @@ public class RPanelWindow implements RPanelHost {
 		return panel != null && this.panel == panel;
 	}
 
+	@Nullable
+	@Override
+	public RPanel getActivePanel() {
+		if (this.ui.isVisible()) {
+			return panel;
+		} else {
+			return null;
+		}
+	}
+
 	@Override
 	public void titleChanged(RPanel panel) {
 		if (this.panel == panel) {
@@ -83,15 +95,17 @@ public class RPanelWindow implements RPanelHost {
 	public void activate(RPanel panel) {
 		if (!owns(panel)) return;
 
-		this.ui.setVisible(true);
-		this.ui.requestFocus();
+		isMinimized = false;
+		updateVisibleState(panel);
+		if (this.ui.isVisible()) this.ui.requestFocus();
 	}
 
 	@Override
-	public void hide(RPanel panel) {
+	public void minimize(RPanel panel) {
 		if (!owns(panel)) return;
 
-		this.ui.setVisible(false);
+		isMinimized = true;
+		updateVisibleState(panel);
 	}
 
 	@Override
@@ -102,6 +116,13 @@ public class RPanelWindow implements RPanelHost {
 	@Override
 	public void removeRPanelListener(RPanelListener listener) {
 		throw new IllegalStateException("not implemented");
+	}
+
+	@Override
+	public void updateVisibleState(RPanel panel) {
+		if (!owns(panel)) return;
+
+		this.ui.setVisible(panel.isVisible() && !isMinimized);
 	}
 
 	@Override

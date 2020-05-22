@@ -11,7 +11,10 @@ public interface RPanelListener {
 	default void onActivate(RPanelHost host, RPanel panel) {
 	}
 
-	default void onHide(RPanelHost host, RPanel panel) {
+	default void onMinimize(RPanelHost host, RPanel panel) {
+	}
+
+	default void onVisibleStateChange(RPanelHost host, RPanel panel) {
 	}
 
 }

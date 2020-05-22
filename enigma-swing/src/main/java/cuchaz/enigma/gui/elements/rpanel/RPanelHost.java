@@ -2,6 +2,8 @@ package cuchaz.enigma.gui.elements.rpanel;
 
 import java.awt.Rectangle;
 
+import javax.annotation.Nullable;
+
 public interface RPanelHost {
 
 	void attach(RPanel panel);
@@ -12,13 +14,18 @@ public interface RPanelHost {
 
 	void titleChanged(RPanel panel);
 
+	@Nullable
+	RPanel getActivePanel();
+
 	void activate(RPanel panel);
 
-	void hide(RPanel panel);
+	void minimize(RPanel panel);
 
 	void addRPanelListener(RPanelListener listener);
 
 	void removeRPanelListener(RPanelListener listener);
+
+	void updateVisibleState(RPanel panel);
 
 	Rectangle getPanelLocation(RPanel panel);
 
