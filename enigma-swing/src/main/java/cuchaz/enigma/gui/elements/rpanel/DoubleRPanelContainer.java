@@ -2,6 +2,7 @@ package cuchaz.enigma.gui.elements.rpanel;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 
 import javax.swing.JLayer;
 import javax.swing.JPanel;
@@ -13,19 +14,24 @@ public class DoubleRPanelContainer {
 
 	private final RPanelContainer left;
 	private final RPanelContainer right;
+	private final JSplitPane splitPane;
 
 	private final JPanel ui;
 	private final JPanel buttonPanel;
+
+	private final JPanel centerPanel;
+	private final JPanel leftPanel;
+	private final JPanel rightPanel;
 
 	public DoubleRPanelContainer(ButtonLocation buttonLocation) {
 		left = new RPanelContainer();
 		right = new RPanelContainer();
 
-		ui = new JPanel();
-		ui.setLayout(new BorderLayout());
-
-		buttonPanel = new JPanel();
-		buttonPanel.setLayout(new BorderLayout());
+		ui = new JPanel(new BorderLayout());
+		centerPanel = new JPanel(new GridLayout(1, 1, 0, 0));
+		leftPanel = new JPanel(new GridLayout(1, 1, 0, 0));
+		rightPanel = new JPanel(new GridLayout(1, 1, 0, 0));
+		buttonPanel = new JPanel(new BorderLayout());
 
 		JPanel leftButtonPanel = new JPanel();
 		JPanel rightButtonPanel = new JPanel();
@@ -38,33 +44,71 @@ public class DoubleRPanelContainer {
 		JLayer<JPanel> layer = new JLayer<>(buttonPanel);
 		layer.setUI(new RotationLayerUI(buttonLocation.getRotation()));
 
-		JSplitPane sp = null;
-
 		switch (buttonLocation) {
 			case TOP:
 				ui.add(layer, BorderLayout.NORTH);
-				sp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, right.getUi(), left.getUi());
+				splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, rightPanel, leftPanel);
 				break;
 			case BOTTOM:
 				ui.add(layer, BorderLayout.SOUTH);
-				sp = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, left.getUi(), right.getUi());
+				splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, leftPanel, rightPanel);
 				break;
 			case LEFT:
 				ui.add(layer, BorderLayout.WEST);
-				sp = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, right.getUi(), left.getUi());
+				splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, rightPanel, leftPanel);
 				break;
 			case RIGHT:
 				ui.add(layer, BorderLayout.EAST);
-				sp = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, left.getUi(), right.getUi());
+				splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, true, leftPanel, rightPanel);
 				break;
+			default:
+				throw new IllegalStateException("unreachable");
 		}
-		sp.setResizeWeight(0.5);
-		sp.resetToPreferredSizes();
+		splitPane.setResizeWeight(0.5);
+		splitPane.resetToPreferredSizes();
 
-		ui.add(sp, BorderLayout.CENTER);
+		ui.add(centerPanel, BorderLayout.CENTER);
+
+		RPanelListener listener = new RPanelListener() {
+			@Override
+			public void onActivate(RPanelHost host, RPanel panel) {
+				updateUiState();
+			}
+
+			@Override
+			public void onMinimize(RPanelHost host, RPanel panel) {
+				updateUiState();
+			}
+		};
+
+		left.addRPanelListener(listener);
+		right.addRPanelListener(listener);
+		updateUiState();
 
 		DecoratedRPanelContainer.initListenerForButtonBar(ui, left, leftButtonPanel::add, leftButtonPanel::remove);
 		DecoratedRPanelContainer.initListenerForButtonBar(ui, right, rightButtonPanel::add, rightButtonPanel::remove);
+	}
+
+	private void updateUiState() {
+		boolean leftHasPanel = left.getActivePanel() != null;
+		boolean rightHasPanel = right.getActivePanel() != null;
+		centerPanel.removeAll();
+		leftPanel.removeAll();
+		rightPanel.removeAll();
+		if (leftHasPanel && rightHasPanel) {
+			leftPanel.add(left.getUi());
+			rightPanel.add(right.getUi());
+			centerPanel.add(splitPane);
+		} else if (!rightHasPanel) {
+			centerPanel.add(left.getUi());
+		} else {
+			centerPanel.add(right.getUi());
+		}
+
+		buttonPanel.setVisible((left.getVisiblePanelCount() | right.getVisiblePanelCount()) != 0);
+
+		this.ui.validate();
+		this.ui.repaint();
 	}
 
 	public JPanel getUi() {

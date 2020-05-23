@@ -97,6 +97,16 @@ public class RPanelContainer implements RPanelHost {
 	}
 
 	@Override
+	public int getPanelCount() {
+		return panels.size();
+	}
+
+	@Override
+	public int getVisiblePanelCount() {
+		return (int) panels.keySet().stream().filter(RPanel::isVisible).count();
+	}
+
+	@Override
 	public void activate(RPanel panel) {
 		if (!owns(panel)) return;
 		if (!panel.isVisible()) return;

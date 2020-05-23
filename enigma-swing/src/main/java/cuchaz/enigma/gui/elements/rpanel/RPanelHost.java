@@ -17,6 +17,10 @@ public interface RPanelHost {
 	@Nullable
 	RPanel getActivePanel();
 
+	int getPanelCount();
+
+	int getVisiblePanelCount();
+
 	void activate(RPanel panel);
 
 	void minimize(RPanel panel);

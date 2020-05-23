@@ -77,11 +77,17 @@ public class RPanelWindow implements RPanelHost {
 	@Nullable
 	@Override
 	public RPanel getActivePanel() {
-		if (this.ui.isVisible()) {
-			return panel;
-		} else {
-			return null;
-		}
+		return this.ui.isVisible() ? panel : null;
+	}
+
+	@Override
+	public int getPanelCount() {
+		return panel != null ? 1 : 0;
+	}
+
+	@Override
+	public int getVisiblePanelCount() {
+		return getActivePanel() != null ? 1 : 0;
 	}
 
 	@Override
