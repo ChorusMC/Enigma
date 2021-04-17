@@ -97,13 +97,15 @@ public class EnigmaProject {
 		return mapper;
 	}
 
-	public void dropMappings(ProgressListener progress) {
+	public Collection<Entry<?>> dropMappings(ProgressListener progress) {
 		DeltaTrackingTree<EntryMapping> mappings = mapper.getObfToDeobf();
 
 		Collection<Entry<?>> dropped = dropMappings(mappings, progress);
 		for (Entry<?> entry : dropped) {
 			mappings.trackChange(entry);
 		}
+
+		return dropped;
 	}
 
 	private Collection<Entry<?>> dropMappings(EntryTree<EntryMapping> mappings, ProgressListener progress) {

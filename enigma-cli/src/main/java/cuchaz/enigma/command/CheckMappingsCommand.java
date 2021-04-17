@@ -3,17 +3,21 @@ package cuchaz.enigma.command;
 import cuchaz.enigma.Enigma;
 import cuchaz.enigma.EnigmaProject;
 import cuchaz.enigma.ProgressListener;
-import cuchaz.enigma.analysis.index.JarIndex;
 import cuchaz.enigma.classprovider.ClasspathClassProvider;
+import cuchaz.enigma.command.checks.CheckFailureException;
+import cuchaz.enigma.command.checks.CheckInvalidMappings;
+import cuchaz.enigma.command.checks.CheckNamedSyntheticEntry;
+import cuchaz.enigma.command.checks.MappingCheck;
+import cuchaz.enigma.command.checks.CheckPackageVisibility;
 import cuchaz.enigma.translation.mapping.EntryMapping;
 import cuchaz.enigma.translation.mapping.serde.MappingSaveParameters;
 import cuchaz.enigma.translation.mapping.serde.MappingFormat;
 import cuchaz.enigma.translation.mapping.tree.EntryTree;
-import cuchaz.enigma.translation.representation.entry.ClassEntry;
 
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class CheckMappingsCommand extends Command {
 
@@ -50,29 +54,30 @@ public class CheckMappingsCommand extends Command {
 		EntryTree<EntryMapping> mappings = format.read(fileMappings, ProgressListener.none(), saveParameters);
 		project.setMappings(mappings);
 
-		JarIndex idx = project.getJarIndex();
+		Set<MappingCheck> checks = new HashSet<>();
+		checks.add(new CheckPackageVisibility());
+		checks.add(new CheckInvalidMappings());
+		checks.add(new CheckNamedSyntheticEntry());
 
-		boolean error = false;
+		LinkedList<CheckFailureException> errors = new LinkedList<>();
+		LinkedList<CheckFailureException> warnings = new LinkedList<>();
 
-		for (Set<ClassEntry> partition : idx.getPackageVisibilityIndex().getPartitions()) {
-			long packages = partition.stream()
-					.map(project.getMapper()::deobfuscate)
-					.map(ClassEntry::getPackageName)
-					.distinct()
-					.count();
-			if (packages > 1) {
-				error = true;
-				System.err.println("ERROR: Must be in one package:\n" + partition.stream()
-						.map(project.getMapper()::deobfuscate)
-						.map(ClassEntry::toString)
-						.sorted()
-						.collect(Collectors.joining("\n"))
-				);
-			}
+		for (MappingCheck check : checks) {
+			check.findErrors(project, check.failOnError() ? errors : warnings);
 		}
 
-		if (error) {
-			throw new IllegalStateException("Errors in package visibility detected, see SysErr above");
+		System.out.printf("%d warnings:\n", warnings.size());
+		for (CheckFailureException warning : warnings) {
+			System.out.println(warning.getMessage());
+		}
+
+		System.out.printf("%d errors:\n", errors.size());
+		if (!errors.isEmpty()) {
+			for (CheckFailureException error : errors) {
+				System.err.println(error.getMessage());
+			}
+
+			throw new IllegalStateException("Mappings check failed, see above output");
 		}
 	}
 }
