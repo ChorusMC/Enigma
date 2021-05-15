@@ -30,6 +30,12 @@ import cuchaz.enigma.translation.mapping.serde.MappingFormat;
 import cuchaz.enigma.utils.I18n;
 import cuchaz.enigma.utils.Pair;
 
+import com.thizzer.jtouchbar.JTouchBar;
+import com.thizzer.jtouchbar.common.Image;
+import com.thizzer.jtouchbar.item.TouchBarItem;
+import com.thizzer.jtouchbar.item.view.TouchBarButton;
+import com.thizzer.jtouchbar.item.view.action.TouchBarViewAction;
+
 public class MenuBar {
 
 	private final JMenuBar ui = new JMenuBar();
@@ -210,6 +216,26 @@ public class MenuBar {
 		this.helpMenu.setText(I18n.translate("menu.help"));
 		this.aboutItem.setText(I18n.translate("menu.help.about"));
 		this.githubItem.setText(I18n.translate("menu.help.github"));
+	}
+
+	private static void addTouchBarButton(JTouchBar touchBar, String id, String labelKey, String icon, TouchBarViewAction action) {
+		Image image = new Image(icon, false);
+
+		TouchBarButton button = new TouchBarButton();
+		button.setImage(image);
+		button.setAction(action);
+
+		TouchBarItem item = new TouchBarItem(id, button, true);
+		item.setCustomizationLabel(I18n.translate(labelKey));
+
+		touchBar.addItem(item);
+	}
+
+	public void initTouchBar(JFrame frame) {
+		JTouchBar touchBar = new JTouchBar();
+		touchBar.setCustomizationIdentifier("Enigma");
+
+		touchBar.show(frame);
 	}
 
 	public JMenuBar getUi() {

@@ -13,6 +13,7 @@ dependencies {
     implementation 'de.sciss:syntaxpane:1.2.0'
     implementation 'com.github.lukeu:swing-dpi:0.9'
     implementation 'org.drjekyll:fontchooser:2.4'
+    implementation 'com.thizzer.jtouchbar:jtouchbar:1.0.0'
 }
 
 mainClassName = 'cuchaz.enigma.gui.Main'

@@ -60,6 +60,7 @@ import cuchaz.enigma.translation.representation.entry.Entry;
 import cuchaz.enigma.translation.representation.entry.FieldEntry;
 import cuchaz.enigma.translation.representation.entry.MethodEntry;
 import cuchaz.enigma.utils.I18n;
+import cuchaz.enigma.utils.Os;
 import cuchaz.enigma.utils.validation.ParameterizedMessage;
 import cuchaz.enigma.utils.validation.ValidationContext;
 
@@ -407,6 +408,12 @@ public class Gui implements LanguageChangeListener {
 		}
 
 		this.frame.setVisible(true);
+
+		// init touch bar
+		// must be called after frame is visible
+		if (Os.getOs() == Os.MAC) {
+			this.menuBar.initTouchBar(this.frame);
+		}
 
 		LanguageUtil.addListener(this);
 	}
