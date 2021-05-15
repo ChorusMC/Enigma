@@ -456,6 +456,7 @@ public class Gui implements LanguageChangeListener {
 
 	public EditorPanel openClass(ClassEntry entry) {
 		EditorPanel editorPanel = editors.computeIfAbsent(entry, e -> {
+			this.controller.getClassHandleProvider().setDecompilerRemoveImports(!UiConfig.shouldShowImports());
 			ClassHandle ch = controller.getClassHandleProvider().openClass(entry);
 			if (ch == null) return null;
 			EditorPanel ed = new EditorPanel(this);

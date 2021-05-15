@@ -86,6 +86,16 @@ public final class ClassHandleProvider {
 		return ds;
 	}
 
+	/**
+	 * Sets the source settings of the decompiler to new source settings,
+	 * with the provided {@code removeImports} setting.
+	 *
+	 * @param removeImports whether imports should be removed when decompiling
+	 */
+	public void setDecompilerRemoveImports(boolean removeImports) {
+		this.decompiler.setSourceSettings(new SourceSettings(removeImports, true));
+	}
+
 	private Decompiler createDecompiler() {
 		return ds.create(new CachingClassProvider(new ObfuscationFixClassProvider(project.getClassProvider(), project.getJarIndex())), new SourceSettings(true, true));
 	}

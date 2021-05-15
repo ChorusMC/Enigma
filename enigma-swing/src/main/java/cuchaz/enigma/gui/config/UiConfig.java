@@ -109,6 +109,14 @@ public final class UiConfig {
 		ui.data().section("Decompiler").setEnum("Current", d);
 	}
 
+	public static boolean shouldShowImports() {
+		return ui.data().section("Decompiler").setIfAbsentBool("Show Imports", false);
+	}
+
+	public static void setShowImports(boolean showImports) {
+		ui.data().section("Decompiler").setBool("Show Imports", showImports);
+	}
+
 	private static Color fromComponents(int rgb, double alpha) {
 		int rgba = rgb & 0xFFFFFF | (int) (alpha * 255) << 24;
 		return new Color(rgba, true);

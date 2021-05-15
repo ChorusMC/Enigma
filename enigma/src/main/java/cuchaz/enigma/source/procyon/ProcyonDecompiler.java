@@ -22,7 +22,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.objectweb.asm.tree.ClassNode;
 
 public class ProcyonDecompiler implements Decompiler {
-	private final SourceSettings settings;
+	private SourceSettings settings;
 	private final DecompilerSettings decompilerSettings;
 	private final MetadataSystem metadataSystem;
 
@@ -92,6 +92,11 @@ public class ProcyonDecompiler implements Decompiler {
 		}
 
 		return new ProcyonSource(source, decompilerSettings);
+	}
+
+	@Override
+	public void setSourceSettings(SourceSettings settings) {
+		this.settings = settings;
 	}
 
 	private static boolean getSystemPropertyAsBoolean(String property, boolean defValue) {

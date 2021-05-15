@@ -32,6 +32,7 @@
 	"menu.file.stats.generate": "Generate Diagram",
 	"menu.file.exit": "Exit",
 	"menu.decompiler": "Decompiler",
+	"menu.decompiler.show_imports": "Show imports",
 	"menu.view": "View",
 	"menu.view.themes": "Themes",
 	"menu.view.themes.default": "Default",

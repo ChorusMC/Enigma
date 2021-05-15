@@ -30,7 +30,7 @@ import java.util.Map;
 public class CfrDecompiler implements Decompiler {
     private final DCCommonState state;
     // cfr doesn't add final on params so final setting is ignored
-    private final SourceSettings settings;
+    private SourceSettings settings;
 
     public CfrDecompiler(ClassProvider classProvider, SourceSettings sourceSettings) {
         Map<String, String> options = new HashMap<>();
@@ -99,5 +99,10 @@ public class CfrDecompiler implements Decompiler {
         TypeUsageCollectingDumper typeUsageCollector = new TypeUsageCollectingDumper(options, tree);
         tree.analyseTop(state, typeUsageCollector);
         return new CfrSource(settings, tree, state, typeUsageCollector.getRealTypeUsageInformation(), options, mapper);
+    }
+
+    @Override
+    public void setSourceSettings(SourceSettings settings) {
+        this.settings = settings;
     }
 }

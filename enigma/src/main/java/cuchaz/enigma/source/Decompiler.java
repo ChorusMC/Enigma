@@ -10,4 +10,6 @@ public interface Decompiler {
 	}
 
 	Source getSource(String className, @Nullable EntryRemapper remapper);
+
+	void setSourceSettings(SourceSettings settings);
 }
