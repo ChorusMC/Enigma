@@ -14,6 +14,8 @@ import javax.swing.JLayeredPane;
 import javax.swing.JRootPane;
 import javax.swing.SwingUtilities;
 
+import com.formdev.flatlaf.ui.FlatTitlePane;
+
 public class RootPaneUtil {
 
 	private RootPaneUtil() {
@@ -49,11 +51,25 @@ public class RootPaneUtil {
 			System.err.println("Couldn't detect a title pane for registering RPanel window drag detection!");
 			return false;
 		} else {
-			if (potentialTitlePanes.size() > 1) {
-				System.err.println("Multiple potential title pane components detected, taking the first one. Window drag detection might not work.");
+			Component titlePane = null;
+
+			for (Component potentialTitlePane : potentialTitlePanes) {
+				if (potentialTitlePane instanceof FlatTitlePane) {
+					// thanks, FlatLaf!
+					titlePane = potentialTitlePane;
+					break;
+				}
 			}
 
-			Component titlePane = potentialTitlePanes.get(0);
+			if (titlePane == null) {
+				if (potentialTitlePanes.size() > 1) {
+					System.err.println("Multiple potential title pane components detected, taking the first one. Window drag detection might not work.");
+				}
+
+				titlePane = potentialTitlePanes.get(0);
+			}
+
+			final Component titlePane1 = titlePane;
 
 			// This code is mostly copied from
 			// MetalRootPaneUI.MouseInputHandler, except that the border
@@ -77,7 +93,7 @@ public class RootPaneUtil {
 					Component w = (Component) e.getSource();
 
 					Point convertedDragWindowOffset = SwingUtilities.convertPoint(
-							w, dragWindowOffset, titlePane);
+							w, dragWindowOffset, titlePane1);
 
 					Frame f = null;
 					Dialog d = null;
@@ -90,7 +106,7 @@ public class RootPaneUtil {
 
 					int frameState = (f != null) ? f.getExtendedState() : 0;
 
-					if (titlePane != null && titlePane.contains(convertedDragWindowOffset)) {
+					if (titlePane1 != null && titlePane1.contains(convertedDragWindowOffset)) {
 						if ((f != null && ((frameState & Frame.MAXIMIZED_BOTH) == 0) || (d != null)) &&
 								dragWindowOffset.y >= BORDER_DRAG_THICKNESS &&
 								dragWindowOffset.x >= BORDER_DRAG_THICKNESS &&
