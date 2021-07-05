@@ -64,7 +64,7 @@ public class DecoratedRPanelContainer {
 
 	public static void initListenerForButtonBar(JComponent ui, RPanelHost panelHost, Consumer<JToggleButton> addCallback, Consumer<JToggleButton> removeCallback) {
 		Map<RPanel, JToggleButton> buttons = new HashMap<>();
-		boolean[] updatingButtons = new boolean[]{false};
+		boolean[] updatingButtons = new boolean[] { false };
 
 		panelHost.addRPanelListener(new RPanelListener() {
 			private void addButtonFor(RPanelHost host, RPanel panel) {
@@ -146,6 +146,17 @@ public class DecoratedRPanelContainer {
 					}
 				} finally {
 					updatingButtons[0] = false;
+				}
+			}
+
+			@Override
+			public void onTitleChange(RPanelHost host, RPanel panel) {
+				JToggleButton button = buttons.get(panel);
+
+				if (button != null) {
+					button.setText(panel.getTitle());
+					ui.validate();
+					ui.repaint();
 				}
 			}
 		});

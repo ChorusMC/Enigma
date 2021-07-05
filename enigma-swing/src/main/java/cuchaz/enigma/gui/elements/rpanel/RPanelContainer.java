@@ -11,7 +11,6 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import javax.swing.JPanel;
 import javax.swing.JRootPane;
-import javax.swing.JToggleButton;
 
 public class RPanelContainer implements RPanelHost {
 
@@ -93,6 +92,7 @@ public class RPanelContainer implements RPanelHost {
 
 		if (pane != null) {
 			pane.setTitle(panel.getTitle());
+			listeners.forEach(l -> l.onTitleChange(this, panel));
 		}
 	}
 

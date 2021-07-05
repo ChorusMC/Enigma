@@ -17,4 +17,7 @@ public interface RPanelListener {
 	default void onVisibleStateChange(RPanelHost host, RPanel panel) {
 	}
 
+	default void onTitleChange(RPanelHost host, RPanel panel) {
+	}
+
 }
