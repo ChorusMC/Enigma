@@ -90,7 +90,6 @@ public class Gui implements LanguageChangeListener {
 	private GuiController controller;
 	private JFrame frame;
 	private JPanel classesPanel;
-	private JSplitPane splitClasses;
 	private IdentifierPanel infoPanel;
 	private StructurePanel structurePanel;
 	private JTree inheritanceTree;
@@ -187,9 +186,9 @@ public class Gui implements LanguageChangeListener {
 
 		// init structure panel
 		this.structurePanel = new StructurePanel(this);
-		this.structureRPanel = new RPanel();
+		this.structureRPanel = new RPanel(I18n.translate("info_panel.tree.structure"));
 		this.structureRPanel.getContentPane().setLayout(new BorderLayout());
-		this.structureRPanel.getContentPane().add(new JScrollPane(this.structurePanel));
+		this.structureRPanel.getContentPane().add(this.structurePanel);
 
 		// init inheritance panel
 		inheritanceTree = new JTree();
@@ -392,7 +391,7 @@ public class Gui implements LanguageChangeListener {
 		// restore state
 		int[] layout = UiConfig.getLayout();
 		if (layout.length >= 4) {
-			this.splitClasses.setDividerLocation(layout[0]);
+			// this.splitClasses.setDividerLocation(layout[0]);
 			this.splitCenter.setDividerLocation(layout[1]);
 			this.splitRight.setDividerLocation(layout[2]);
 			// this.logSplit.setDividerLocation(layout[3]);
@@ -832,7 +831,7 @@ public class Gui implements LanguageChangeListener {
 		UiConfig.setWindowPos("Main Window", this.frame.getLocationOnScreen());
 		UiConfig.setWindowSize("Main Window", this.frame.getSize());
 		UiConfig.setLayout(
-				this.splitClasses.getDividerLocation(),
+				0 /* this.splitClasses.getDividerLocation() */,
 				this.splitCenter.getDividerLocation(),
 				this.splitRight.getDividerLocation(),
 				0 /* this.logSplit.getDividerLocation() */);

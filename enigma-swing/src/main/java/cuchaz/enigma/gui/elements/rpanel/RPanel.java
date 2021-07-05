@@ -105,7 +105,10 @@ public class RPanel {
 	}
 
 	public void setTitle(String title) {
-		this.host.titleChanged(this);
+		if (this.host != null) {
+			this.host.titleChanged(this);
+		}
+
 		this.title = title;
 	}
 
