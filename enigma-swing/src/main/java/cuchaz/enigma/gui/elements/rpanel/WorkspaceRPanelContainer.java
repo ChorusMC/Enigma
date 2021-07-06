@@ -30,7 +30,7 @@ public final class WorkspaceRPanelContainer {
 	private Container workArea = new JPanel();
 
 	private final ManagedSplitPane leftSplit = new ManagedSplitPane(JSplitPane.VERTICAL_SPLIT, this.leftTop.getUi(), this.leftBottom.getUi());
-	private final ManagedSplitPane rightSplit = new ManagedSplitPane(JSplitPane.VERTICAL_SPLIT, this.rightTop.getUi(), this.rightTop.getUi());
+	private final ManagedSplitPane rightSplit = new ManagedSplitPane(JSplitPane.VERTICAL_SPLIT, this.rightTop.getUi(), this.rightBottom.getUi());
 	private final ManagedSplitPane bottomSplit = new ManagedSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.bottomLeft.getUi(), this.bottomRight.getUi());
 	private final ManagedSplitPane topSplit = new ManagedSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.topLeft.getUi(), this.topRight.getUi());
 	private final BorderSplitPane split = new BorderSplitPane(
@@ -107,7 +107,7 @@ public final class WorkspaceRPanelContainer {
 
 		DecoratedRPanelContainer.initListenerForButtonBar(this.ui, this.leftBottom, leftBottomButtonPanel::add, leftBottomButtonPanel::remove);
 		DecoratedRPanelContainer.initListenerForButtonBar(this.ui, this.leftTop, leftTopButtonPanel::add, leftTopButtonPanel::remove);
-		DecoratedRPanelContainer.initListenerForButtonBar(this.ui, this.rightBottom, rightBottomButtonPanel::add, leftBottomButtonPanel::remove);
+		DecoratedRPanelContainer.initListenerForButtonBar(this.ui, this.rightBottom, rightBottomButtonPanel::add, rightBottomButtonPanel::remove);
 		DecoratedRPanelContainer.initListenerForButtonBar(this.ui, this.rightTop, rightTopButtonPanel::add, rightTopButtonPanel::remove);
 		DecoratedRPanelContainer.initListenerForButtonBar(this.ui, this.bottomLeft, bottomLeftButtonPanel::add, bottomLeftButtonPanel::remove);
 		DecoratedRPanelContainer.initListenerForButtonBar(this.ui, this.bottomRight, bottomRightButtonPanel::add, bottomRightButtonPanel::remove);
