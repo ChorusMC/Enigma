@@ -10,11 +10,11 @@ import javax.swing.JPanel;
 
 public class RPanel {
 
-	private Container contentPane;
+	private Container contentPane = new JPanel();
 	private String title;
 
 	private RPanelHost host;
-	private Set<RPanelHost> dndContainers = new HashSet<>();
+	private final Set<RPanelHost> dndContainers = new HashSet<>();
 
 	private boolean visible = true;
 
@@ -23,7 +23,6 @@ public class RPanel {
 	}
 
 	public RPanel(String title) {
-		this.contentPane = new JPanel();
 		this.title = title;
 	}
 

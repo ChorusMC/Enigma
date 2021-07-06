@@ -14,7 +14,7 @@ import cuchaz.enigma.utils.I18n;
 
 public class ObfPanel {
 
-	private final RPanel panel;
+	private final RPanel panel = new RPanel();
 
 	public final ClassSelector obfClasses;
 
@@ -22,7 +22,6 @@ public class ObfPanel {
 
 	public ObfPanel(Gui gui) {
 		this.gui = gui;
-		this.panel = new RPanel(I18n.translate("info_panel.classes.obfuscated"));
 		Container contentPane = panel.getContentPane();
 
 		Comparator<ClassEntry> obfClassComparator = (a, b) -> {

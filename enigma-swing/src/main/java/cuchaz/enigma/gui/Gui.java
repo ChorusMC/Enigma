@@ -114,13 +114,12 @@ public class Gui implements LanguageChangeListener {
 
 	private final WorkspaceRPanelContainer workspace = new WorkspaceRPanelContainer();
 
-	private final RPanel structureRPanel;
-	private final RPanel inheritancePanel;
-	private final RPanel implementationsPanel;
-	private final RPanel callPanel;
-	private final RPanel messagePanel;
-	private final RPanel userPanel;
-
+	private final RPanel structureRPanel = new RPanel();
+	private final RPanel inheritancePanel = new RPanel();
+	private final RPanel implementationsPanel = new RPanel();
+	private final RPanel callPanel = new RPanel();
+	private final RPanel messagePanel = new RPanel();
+	private final RPanel userPanel = new RPanel();
 
 	public Gui(EnigmaProfile profile, Set<EditableType> editableTypes) {
 		this.editableTypes = editableTypes;
@@ -177,7 +176,6 @@ public class Gui implements LanguageChangeListener {
 
 		// init structure panel
 		this.structurePanel = new StructurePanel(this);
-		this.structureRPanel = new RPanel(I18n.translate("info_panel.tree.structure"));
 		this.structureRPanel.getContentPane().setLayout(new BorderLayout());
 		this.structureRPanel.getContentPane().add(this.structurePanel);
 
@@ -211,7 +209,6 @@ public class Gui implements LanguageChangeListener {
 			}
 		});
 
-		inheritancePanel = new RPanel(I18n.translate("info_panel.tree.inheritance"));
 		inheritancePanel.getContentPane().setLayout(new BorderLayout());
 		inheritancePanel.getContentPane().add(new JScrollPane(inheritanceTree));
 
@@ -240,7 +237,6 @@ public class Gui implements LanguageChangeListener {
 				}
 			}
 		});
-		implementationsPanel = new RPanel(I18n.translate("info_panel.tree.implementations"));
 		implementationsPanel.getContentPane().setLayout(new BorderLayout());
 		implementationsPanel.getContentPane().add(new JScrollPane(implementationsTree));
 
@@ -289,7 +285,6 @@ public class Gui implements LanguageChangeListener {
 		});
 		tokens.setPreferredSize(ScaleUtil.getDimension(0, 200));
 		tokens.setMinimumSize(ScaleUtil.getDimension(0, 200));
-		callPanel = new RPanel(I18n.translate("info_panel.tree.calls"));
 		JSplitPane callPanelContentPane = new JSplitPane(
 				JSplitPane.VERTICAL_SPLIT,
 				true,
@@ -343,14 +338,12 @@ public class Gui implements LanguageChangeListener {
 		this.workspace.getRightTop().attach(implementationsPanel);
 		this.workspace.getRightTop().attach(callPanel);
 
-		userPanel = new RPanel(I18n.translate("log_panel.users"));
 		userPanel.getContentPane().setLayout(new BorderLayout());
 		userModel = new DefaultListModel<>();
 		users = new JList<>(userModel);
 		userPanel.getContentPane().add(new JScrollPane(this.users));
 		this.workspace.getRightBottom().attach(userPanel);
 
-		messagePanel = new RPanel(I18n.translate("log_panel.messages"));
 		messagePanel.getContentPane().setLayout(new BorderLayout());
 		messageModel = new DefaultListModel<>();
 		messages = new JList<>(messageModel);
