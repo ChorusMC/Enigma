@@ -11,8 +11,11 @@ public class ManagedSplitPane {
 	private final JPanel leftPanel = new JPanel(new GridLayout(1, 1, 0, 0));
 	private final JPanel rightPanel = new JPanel(new GridLayout(1, 1, 0, 0));
 	private final JSplitPane splitPane;
-	private final Component left;
-	private final Component right;
+	private Component left;
+	private Component right;
+
+	private boolean leftActive;
+	private boolean rightActive;
 
 	public ManagedSplitPane(int newOrientation, Component left, Component right) {
 		this.splitPane = new JSplitPane(newOrientation, true, this.leftPanel, this.rightPanel);
@@ -22,6 +25,26 @@ public class ManagedSplitPane {
 		this.setState(true, true);
 		this.splitPane.setResizeWeight(0.5);
 		this.splitPane.resetToPreferredSizes();
+	}
+
+	public void setLeftComponent(Component left) {
+		this.splitPane.setLeftComponent(left);
+		this.left = left;
+		this.setState(this.leftActive, this.rightActive);
+	}
+
+	public void setRightComponent(Component right) {
+		this.splitPane.setRightComponent(right);
+		this.right = right;
+		this.setState(this.leftActive, this.rightActive);
+	}
+
+	public Component getLeftComponent() {
+		return this.left;
+	}
+
+	public Component getRightComponent() {
+		return this.right;
 	}
 
 	public void setState(boolean leftActive, boolean rightActive) {
@@ -38,6 +61,9 @@ public class ManagedSplitPane {
 		} else if (rightActive) {
 			this.ui.add(this.right);
 		}
+
+		this.leftActive = leftActive;
+		this.rightActive = rightActive;
 
 		this.ui.validate();
 		this.ui.repaint();

@@ -21,12 +21,6 @@ public final class WorkspaceRPanelContainer {
 	private final RPanelContainer topLeft = new RPanelContainer();
 
 	private final JPanel ui = new JPanel(new BorderLayout());
-	private final JPanel innerUi = new JPanel(new BorderLayout());
-
-	private final ManagedSplitPane leftSplit = new ManagedSplitPane(JSplitPane.VERTICAL_SPLIT, this.leftTop.getUi(), this.leftBottom.getUi());
-	private final ManagedSplitPane rightSplit = new ManagedSplitPane(JSplitPane.VERTICAL_SPLIT, this.rightTop.getUi(), this.rightTop.getUi());
-	private final ManagedSplitPane bottomSplit = new ManagedSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.bottomLeft.getUi(), this.bottomRight.getUi());
-	private final ManagedSplitPane topSplit = new ManagedSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.topLeft.getUi(), this.topRight.getUi());
 
 	private final JPanel leftButtonPanel = new JPanel(new BorderLayout());
 	private final JPanel rightButtonPanel = new JPanel(new BorderLayout());
@@ -34,6 +28,18 @@ public final class WorkspaceRPanelContainer {
 	private final JPanel topButtonPanel = new JPanel(new BorderLayout());
 
 	private Container workArea = new JPanel();
+
+	private final ManagedSplitPane leftSplit = new ManagedSplitPane(JSplitPane.VERTICAL_SPLIT, this.leftTop.getUi(), this.leftBottom.getUi());
+	private final ManagedSplitPane rightSplit = new ManagedSplitPane(JSplitPane.VERTICAL_SPLIT, this.rightTop.getUi(), this.rightTop.getUi());
+	private final ManagedSplitPane bottomSplit = new ManagedSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.bottomLeft.getUi(), this.bottomRight.getUi());
+	private final ManagedSplitPane topSplit = new ManagedSplitPane(JSplitPane.HORIZONTAL_SPLIT, this.topLeft.getUi(), this.topRight.getUi());
+	private final BorderSplitPane split = new BorderSplitPane(
+			this.topSplit.getUi(),
+			this.leftSplit.getUi(),
+			this.bottomSplit.getUi(),
+			this.rightSplit.getUi(),
+			this.workArea
+	);
 
 	public WorkspaceRPanelContainer() {
 		JPanel leftTopButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -63,16 +69,11 @@ public final class WorkspaceRPanelContainer {
 		JLayer<JPanel> topLayer = new JLayer<>(this.topButtonPanel);
 		topLayer.setUI(new RotationLayerUI(ButtonLocation.TOP.getRotation()));
 
-		this.ui.add(this.innerUi, BorderLayout.CENTER);
+		this.ui.add(this.split.getUi(), BorderLayout.CENTER);
 		this.ui.add(leftLayer, BorderLayout.WEST);
 		this.ui.add(rightLayer, BorderLayout.EAST);
 		this.ui.add(bottomLayer, BorderLayout.SOUTH);
 		this.ui.add(topLayer, BorderLayout.NORTH);
-		this.innerUi.add(this.workArea, BorderLayout.CENTER);
-		this.innerUi.add(this.leftSplit.getUi(), BorderLayout.WEST);
-		this.innerUi.add(this.rightSplit.getUi(), BorderLayout.EAST);
-		this.innerUi.add(this.bottomSplit.getUi(), BorderLayout.SOUTH);
-		this.innerUi.add(this.topSplit.getUi(), BorderLayout.NORTH);
 
 		RPanelListener listener = new RPanelListener() {
 			@Override
@@ -125,6 +126,13 @@ public final class WorkspaceRPanelContainer {
 		this.bottomButtonPanel.setVisible((this.bottomLeft.getVisiblePanelCount() | this.bottomRight.getVisiblePanelCount()) != 0);
 		this.topButtonPanel.setVisible((this.topLeft.getVisiblePanelCount() | this.topRight.getVisiblePanelCount()) != 0);
 
+		this.split.setState(
+				topLeftHasPanel || topRightHasPanel,
+				leftTopHasPanel || leftBottomHasPanel,
+				bottomLeftHasPanel || bottomRightHasPanel,
+				rightTopHasPanel || rightBottomHasPanel
+		);
+
 		this.ui.validate();
 		this.ui.repaint();
 	}
@@ -138,11 +146,7 @@ public final class WorkspaceRPanelContainer {
 	}
 
 	public void setWorkArea(Container workArea) {
-		if (this.workArea != null) {
-			this.innerUi.remove(this.workArea);
-		}
-
-		this.innerUi.add(workArea, BorderLayout.CENTER);
+		this.split.setCenterComponent(workArea);
 		this.workArea = workArea;
 	}
 
