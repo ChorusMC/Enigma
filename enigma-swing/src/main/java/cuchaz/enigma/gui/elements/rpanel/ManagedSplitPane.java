@@ -27,14 +27,20 @@ public class ManagedSplitPane {
 		this.splitPane.resetToPreferredSizes();
 	}
 
+	public void setResizeWeight(double value) {
+		this.splitPane.setResizeWeight(value);
+	}
+
+	public void resetToPreferredSizes() {
+		this.splitPane.resetToPreferredSizes();
+	}
+
 	public void setLeftComponent(Component left) {
-		this.splitPane.setLeftComponent(left);
 		this.left = left;
 		this.setState(this.leftActive, this.rightActive);
 	}
 
 	public void setRightComponent(Component right) {
-		this.splitPane.setRightComponent(right);
 		this.right = right;
 		this.setState(this.leftActive, this.rightActive);
 	}

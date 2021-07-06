@@ -42,6 +42,15 @@ public final class WorkspaceRPanelContainer {
 	);
 
 	public WorkspaceRPanelContainer() {
+		this.leftSplit.setResizeWeight(0.5);
+		this.leftSplit.resetToPreferredSizes();
+		this.rightSplit.setResizeWeight(0.5);
+		this.rightSplit.resetToPreferredSizes();
+		this.bottomSplit.setResizeWeight(0.5);
+		this.bottomSplit.resetToPreferredSizes();
+		this.topSplit.setResizeWeight(0.5);
+		this.topSplit.resetToPreferredSizes();
+
 		JPanel leftTopButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		JPanel leftBottomButtonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		JPanel bottomRightButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
