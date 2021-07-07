@@ -37,7 +37,6 @@ import cuchaz.enigma.analysis.*;
 import cuchaz.enigma.classhandle.ClassHandle;
 import cuchaz.enigma.gui.config.Themes;
 import cuchaz.enigma.gui.config.UiConfig;
-import cuchaz.enigma.gui.dialog.CrashDialog;
 import cuchaz.enigma.gui.dialog.JavadocDialog;
 import cuchaz.enigma.gui.dialog.SearchDialog;
 import cuchaz.enigma.gui.elements.DeobfPanelPopupMenu;
@@ -52,7 +51,10 @@ import cuchaz.enigma.gui.renderer.CallsTreeCellRenderer;
 import cuchaz.enigma.gui.renderer.ImplementationsTreeCellRenderer;
 import cuchaz.enigma.gui.renderer.InheritanceTreeCellRenderer;
 import cuchaz.enigma.gui.renderer.MessageListCellRenderer;
-import cuchaz.enigma.gui.util.*;
+import cuchaz.enigma.gui.util.History;
+import cuchaz.enigma.gui.util.LanguageUtil;
+import cuchaz.enigma.gui.util.ScaleUtil;
+import cuchaz.enigma.gui.util.SingleTreeSelectionModel;
 import cuchaz.enigma.network.Message;
 import cuchaz.enigma.network.packet.MessageC2SPacket;
 import cuchaz.enigma.source.Token;
@@ -66,12 +68,10 @@ import cuchaz.enigma.utils.I18n;
 import cuchaz.enigma.utils.validation.ParameterizedMessage;
 import cuchaz.enigma.utils.validation.ValidationContext;
 
-public class Gui implements LanguageChangeListener {
+public class Gui {
 
-	private final ObfPanel obfPanel;
-	private final DeobfPanel deobfPanel;
-
-	private final MenuBar menuBar;
+	private final JFrame frame = new JFrame(Enigma.NAME);
+	private final GuiController controller;
 
 	// state
 	public History<EntryReference<Entry<?>, Entry<?>>> referenceHistory;
@@ -79,38 +79,6 @@ public class Gui implements LanguageChangeListener {
 	private boolean isJarOpen;
 	private final Set<EditableType> editableTypes;
 	private boolean singleClassTree;
-
-	public JFileChooser jarFileChooser;
-	public JFileChooser tinyMappingsFileChooser;
-	public JFileChooser enigmaMappingsFileChooser;
-	public JFileChooser exportSourceFileChooser;
-	public JFileChooser exportJarFileChooser;
-	public SearchDialog searchDialog;
-	private GuiController controller;
-	private JFrame frame;
-	private JPanel classesPanel;
-	private IdentifierPanel infoPanel;
-	private StructurePanel structurePanel;
-	private JTree inheritanceTree;
-	private JTree implementationsTree;
-	private JTree callsTree;
-	private JList<Token> tokens;
-
-	private JList<String> users;
-	private DefaultListModel<String> userModel;
-	private JScrollPane messageScrollPane;
-	private JList<Message> messages;
-	private DefaultListModel<Message> messageModel;
-	private JTextField chatBox;
-
-	private JPanel statusBar;
-	private JLabel connectionStatusLabel;
-	private JLabel statusLabel;
-
-	private final EditorTabPopupMenu editorTabPopupMenu;
-	private final DeobfPanelPopupMenu deobfPanelPopupMenu;
-	private final JTabbedPane openFiles;
-	private final HashBiMap<ClassEntry, EditorPanel> editors = HashBiMap.create();
 
 	private final WorkspaceRPanelContainer workspace = new WorkspaceRPanelContainer();
 
@@ -121,66 +89,77 @@ public class Gui implements LanguageChangeListener {
 	private final RPanel messagePanel = new RPanel();
 	private final RPanel userPanel = new RPanel();
 
+	private final MenuBar menuBar;
+	private final ObfPanel obfPanel;
+	private final DeobfPanel deobfPanel;
+	private final IdentifierPanel infoPanel;
+	private final StructurePanel structurePanel;
+
+	private final JTree inheritanceTree = new JTree();
+	private final JTree implementationsTree = new JTree();
+	private final JTree callsTree = new JTree();
+	private final JList<Token> tokens = new JList<>();
+
+	private final DefaultListModel<String> userModel = new DefaultListModel<>();
+	private final DefaultListModel<Message> messageModel = new DefaultListModel<>();
+	private final JList<String> users = new JList<>(userModel);
+	private final JList<Message> messages = new JList<>(messageModel);
+	private final JScrollPane messageScrollPane = new JScrollPane(this.messages);
+	private final JTextField chatBox = new JTextField();
+
+	private final JPanel statusBar = new JPanel(new BorderLayout());
+	private final JLabel connectionStatusLabel = new JLabel();
+	private final JLabel statusLabel = new JLabel();
+
+	private final EditorTabPopupMenu editorTabPopupMenu;
+	private final DeobfPanelPopupMenu deobfPanelPopupMenu;
+	private final JTabbedPane openFiles = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
+	private final HashBiMap<ClassEntry, EditorPanel> editors = HashBiMap.create();
+
+	public final JFileChooser jarFileChooser = new JFileChooser();
+	public final JFileChooser tinyMappingsFileChooser = new JFileChooser();
+	public final JFileChooser enigmaMappingsFileChooser = new JFileChooser();
+	public final JFileChooser exportSourceFileChooser = new JFileChooser();
+	public final JFileChooser exportJarFileChooser = new JFileChooser();
+	public SearchDialog searchDialog;
+
 	public Gui(EnigmaProfile profile, Set<EditableType> editableTypes) {
 		this.editableTypes = editableTypes;
+		this.controller = new GuiController(this, profile);
+		this.structurePanel = new StructurePanel(this);
+		this.deobfPanel = new DeobfPanel(this);
+		this.infoPanel = new IdentifierPanel(this);
+		this.obfPanel = new ObfPanel(this);
+		this.menuBar = new MenuBar(this);
+		this.editorTabPopupMenu = new EditorTabPopupMenu(this);
+		this.deobfPanelPopupMenu = new DeobfPanelPopupMenu(this);
 
-		// init frame
-		this.frame = new JFrame(Enigma.NAME);
-		final Container pane = this.frame.getContentPane();
-		pane.setLayout(new BorderLayout());
+		this.setupUi();
 
-		if (Boolean.parseBoolean(System.getProperty("enigma.catchExceptions", "true"))) {
-			// install a global exception handler to the event thread
-			CrashDialog.init(this.frame);
-			Thread.setDefaultUncaughtExceptionHandler((thread, t) -> {
-				t.printStackTrace(System.err);
-				if (!ExceptionIgnorer.shouldIgnore(t)) {
-					CrashDialog.show(t);
-				}
-			});
-		}
-
+		LanguageUtil.addListener(this::retranslateUi);
 		Themes.addListener((lookAndFeel, boxHighlightPainters) -> SwingUtilities.updateComponentTreeUI(this.getFrame()));
 
-		this.controller = new GuiController(this, profile);
+		this.frame.setVisible(true);
+	}
 
-		// init file choosers
-		this.jarFileChooser = new JFileChooser();
-		this.jarFileChooser.setDialogTitle(I18n.translate("menu.file.jar.open"));
+	private void setupUi() {
+		Container pane = this.frame.getContentPane();
+		pane.setLayout(new BorderLayout());
+
 		this.jarFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-
-		this.tinyMappingsFileChooser = new JFileChooser();
-		this.tinyMappingsFileChooser.setDialogTitle("Open tiny Mappings");
 		this.tinyMappingsFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
-		this.enigmaMappingsFileChooser = new JFileChooser();
 		this.enigmaMappingsFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		this.enigmaMappingsFileChooser.setAcceptAllFileFilterUsed(false);
 
-		this.exportSourceFileChooser = new JFileChooser();
 		this.exportSourceFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 		this.exportSourceFileChooser.setAcceptAllFileFilterUsed(false);
 
-		this.exportJarFileChooser = new JFileChooser();
-		this.exportJarFileChooser.setDialogTitle(I18n.translate("menu.file.export.jar"));
 		this.exportJarFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
-		this.obfPanel = new ObfPanel(this);
-		this.deobfPanel = new DeobfPanel(this);
-
-		this.workspace.getLeftTop().attach(obfPanel.getPanel());
-		this.workspace.getLeftBottom().attach(deobfPanel.getPanel());
-
-		// init info panel
-		infoPanel = new IdentifierPanel(this);
-
-		// init structure panel
-		this.structurePanel = new StructurePanel(this);
 		this.structureRPanel.getContentPane().setLayout(new BorderLayout());
 		this.structureRPanel.getContentPane().add(this.structurePanel);
 
-		// init inheritance panel
-		inheritanceTree = new JTree();
 		inheritanceTree.setModel(null);
 		inheritanceTree.setCellRenderer(new InheritanceTreeCellRenderer(this));
 		inheritanceTree.setSelectionModel(new SingleTreeSelectionModel());
@@ -212,8 +191,6 @@ public class Gui implements LanguageChangeListener {
 		inheritancePanel.getContentPane().setLayout(new BorderLayout());
 		inheritancePanel.getContentPane().add(new JScrollPane(inheritanceTree));
 
-		// init implementations panel
-		implementationsTree = new JTree();
 		implementationsTree.setModel(null);
 		implementationsTree.setCellRenderer(new ImplementationsTreeCellRenderer(this));
 		implementationsTree.setSelectionModel(new SingleTreeSelectionModel());
@@ -240,8 +217,6 @@ public class Gui implements LanguageChangeListener {
 		implementationsPanel.getContentPane().setLayout(new BorderLayout());
 		implementationsPanel.getContentPane().add(new JScrollPane(implementationsTree));
 
-		// init call panel
-		callsTree = new JTree();
 		callsTree.setModel(null);
 		callsTree.setCellRenderer(new CallsTreeCellRenderer(this));
 		callsTree.setSelectionModel(new SingleTreeSelectionModel());
@@ -268,7 +243,6 @@ public class Gui implements LanguageChangeListener {
 				}
 			}
 		});
-		tokens = new JList<>();
 		tokens.setCellRenderer(new TokenListCellRenderer(controller));
 		tokens.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		tokens.setLayoutOrientation(JList.VERTICAL);
@@ -295,8 +269,6 @@ public class Gui implements LanguageChangeListener {
 		callPanelContentPane.resetToPreferredSizes();
 		callPanel.setContentPane(callPanelContentPane);
 
-		editorTabPopupMenu = new EditorTabPopupMenu(this);
-		openFiles = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 		openFiles.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -311,7 +283,6 @@ public class Gui implements LanguageChangeListener {
 			}
 		});
 
-		deobfPanelPopupMenu = new DeobfPanelPopupMenu(this);
 		deobfPanel.deobfClasses.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -333,24 +304,13 @@ public class Gui implements LanguageChangeListener {
 
 		// left.getUi().setPreferredSize(ScaleUtil.getDimension(300, 0));
 		// right.getUi().setPreferredSize(ScaleUtil.getDimension(250, 0));
-		this.workspace.getRightTop().attach(structureRPanel);
-		this.workspace.getRightTop().attach(inheritancePanel);
-		this.workspace.getRightTop().attach(implementationsPanel);
-		this.workspace.getRightTop().attach(callPanel);
 
 		userPanel.getContentPane().setLayout(new BorderLayout());
-		userModel = new DefaultListModel<>();
-		users = new JList<>(userModel);
 		userPanel.getContentPane().add(new JScrollPane(this.users));
-		this.workspace.getRightBottom().attach(userPanel);
 
 		messagePanel.getContentPane().setLayout(new BorderLayout());
-		messageModel = new DefaultListModel<>();
-		messages = new JList<>(messageModel);
 		messages.setCellRenderer(new MessageListCellRenderer());
-		messageScrollPane = new JScrollPane(this.messages);
 		JPanel chatPanel = new JPanel(new BorderLayout());
-		chatBox = new JTextField();
 		AbstractAction sendListener = new AbstractAction("Send") {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -363,7 +323,6 @@ public class Gui implements LanguageChangeListener {
 		chatPanel.add(chatSendButton, BorderLayout.EAST);
 		messagePanel.getContentPane().add(messageScrollPane, BorderLayout.CENTER);
 		messagePanel.getContentPane().add(chatPanel, BorderLayout.SOUTH);
-		this.workspace.getRightTop().attach(messagePanel);
 
 		this.workspace.setWorkArea(centerPanel);
 		pane.add(this.workspace.getUi(), BorderLayout.CENTER);
@@ -377,6 +336,15 @@ public class Gui implements LanguageChangeListener {
 			// this.logSplit.setDividerLocation(layout[3]);
 		}
 
+		this.workspace.getRightTop().attach(structureRPanel);
+		this.workspace.getRightTop().attach(inheritancePanel);
+		this.workspace.getRightTop().attach(implementationsPanel);
+		this.workspace.getRightTop().attach(callPanel);
+		this.workspace.getLeftTop().attach(obfPanel.getPanel());
+		this.workspace.getLeftBottom().attach(deobfPanel.getPanel());
+		this.workspace.getRightTop().attach(messagePanel);
+		this.workspace.getRightBottom().attach(userPanel);
+
 		this.workspace.addDragTarget(structureRPanel);
 		this.workspace.addDragTarget(inheritancePanel);
 		this.workspace.addDragTarget(implementationsPanel);
@@ -386,15 +354,9 @@ public class Gui implements LanguageChangeListener {
 		this.workspace.addDragTarget(messagePanel);
 		this.workspace.addDragTarget(userPanel);
 
-		// init menus
-		this.menuBar = new MenuBar(this);
 		this.frame.setJMenuBar(this.menuBar.getUi());
 
-		// init status bar
-		statusBar = new JPanel(new BorderLayout());
 		statusBar.setBorder(BorderFactory.createLoweredBevelBorder());
-		connectionStatusLabel = new JLabel();
-		statusLabel = new JLabel();
 		statusBar.add(statusLabel, BorderLayout.CENTER);
 		statusBar.add(connectionStatusLabel, BorderLayout.EAST);
 		pane.add(statusBar, BorderLayout.SOUTH);
@@ -411,7 +373,6 @@ public class Gui implements LanguageChangeListener {
 		});
 
 		// show the frame
-		pane.doLayout();
 		this.frame.setSize(UiConfig.getWindowSize("Main Window", ScaleUtil.getDimension(1024, 576)));
 		this.frame.setMinimumSize(ScaleUtil.getDimension(640, 480));
 		this.frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
@@ -423,9 +384,7 @@ public class Gui implements LanguageChangeListener {
 			this.frame.setLocationRelativeTo(null);
 		}
 
-		this.frame.setVisible(true);
-
-		LanguageUtil.addListener(this);
+		this.retranslateUi();
 	}
 
 	public JFrame getFrame() {
@@ -956,7 +915,7 @@ public class Gui implements LanguageChangeListener {
 		}
 	}
 
-	@Override
+	// @Override
 	public void retranslateUi() {
 		this.jarFileChooser.setDialogTitle(I18n.translate("menu.file.jar.open"));
 		this.exportJarFileChooser.setDialogTitle(I18n.translate("menu.file.export.jar"));
