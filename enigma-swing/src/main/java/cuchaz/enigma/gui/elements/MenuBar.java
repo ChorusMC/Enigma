@@ -30,8 +30,6 @@ import cuchaz.enigma.utils.Pair;
 
 public class MenuBar {
 
-	private final JMenuBar ui = new JMenuBar();
-
 	private final JMenu fileMenu = new JMenu();
 	private final JMenuItem jarOpenItem = new JMenuItem();
 	private final JMenuItem jarCloseItem = new JMenuItem();
@@ -74,6 +72,8 @@ public class MenuBar {
 	public MenuBar(Gui gui) {
 		this.gui = gui;
 
+		JMenuBar ui = gui.getMainWindow().menuBar();
+
 		this.retranslateUi();
 
 		prepareOpenMenu(this.openMenu, gui);
@@ -101,29 +101,29 @@ public class MenuBar {
 		this.fileMenu.add(this.statsItem);
 		this.fileMenu.addSeparator();
 		this.fileMenu.add(this.exitItem);
-		this.ui.add(this.fileMenu);
+		ui.add(this.fileMenu);
 
-		this.ui.add(this.decompilerMenu);
+		ui.add(this.decompilerMenu);
 
 		this.viewMenu.add(this.themesMenu);
 		this.viewMenu.add(this.languagesMenu);
 		this.scaleMenu.add(this.customScaleItem);
 		this.viewMenu.add(this.scaleMenu);
 		this.viewMenu.add(this.fontItem);
-		this.ui.add(this.viewMenu);
+		ui.add(this.viewMenu);
 
 		this.searchMenu.add(this.searchClassItem);
 		this.searchMenu.add(this.searchMethodItem);
 		this.searchMenu.add(this.searchFieldItem);
-		this.ui.add(this.searchMenu);
+		ui.add(this.searchMenu);
 
 		this.collabMenu.add(this.connectItem);
 		this.collabMenu.add(this.startServerItem);
-		this.ui.add(this.collabMenu);
+		ui.add(this.collabMenu);
 
 		this.helpMenu.add(this.aboutItem);
 		this.helpMenu.add(this.githubItem);
-		this.ui.add(this.helpMenu);
+		ui.add(this.helpMenu);
 
 		this.saveMappingsItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK));
 		this.searchClassItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, InputEvent.SHIFT_DOWN_MASK));
@@ -208,10 +208,6 @@ public class MenuBar {
 		this.helpMenu.setText(I18n.translate("menu.help"));
 		this.aboutItem.setText(I18n.translate("menu.help.about"));
 		this.githubItem.setText(I18n.translate("menu.help.github"));
-	}
-
-	public JMenuBar getUi() {
-		return this.ui;
 	}
 
 	private void onOpenJarClicked() {

@@ -85,6 +85,8 @@ public class GuiController implements ClientPacketHandler {
 	private EnigmaClient client;
 	private EnigmaServer server;
 
+	private History<EntryReference<Entry<?>, Entry<?>>> referenceHistory;
+
 	public GuiController(Gui gui, EnigmaProfile profile) {
 		this.gui = gui;
 		this.enigma = Enigma.builder()
@@ -299,11 +301,11 @@ public class GuiController implements ClientPacketHandler {
 		if (reference == null) {
 			throw new IllegalArgumentException("Reference cannot be null!");
 		}
-		if (this.gui.referenceHistory == null) {
-			this.gui.referenceHistory = new History<>(reference);
+		if (this.referenceHistory == null) {
+			this.referenceHistory = new History<>(reference);
 		} else {
-			if (!reference.equals(this.gui.referenceHistory.getCurrent())) {
-				this.gui.referenceHistory.push(reference);
+			if (!reference.equals(this.referenceHistory.getCurrent())) {
+				this.referenceHistory.push(reference);
 			}
 		}
 		setReference(reference);
@@ -330,22 +332,22 @@ public class GuiController implements ClientPacketHandler {
 
 	public void openPreviousReference() {
 		if (hasPreviousReference()) {
-			setReference(gui.referenceHistory.goBack());
+			setReference(referenceHistory.goBack());
 		}
 	}
 
 	public boolean hasPreviousReference() {
-		return gui.referenceHistory != null && gui.referenceHistory.canGoBack();
+		return referenceHistory != null && referenceHistory.canGoBack();
 	}
 
 	public void openNextReference() {
 		if (hasNextReference()) {
-			setReference(gui.referenceHistory.goForward());
+			setReference(referenceHistory.goForward());
 		}
 	}
 
 	public boolean hasNextReference() {
-		return gui.referenceHistory != null && gui.referenceHistory.canGoForward();
+		return referenceHistory != null && referenceHistory.canGoForward();
 	}
 
 	public void navigateTo(Entry<?> entry) {

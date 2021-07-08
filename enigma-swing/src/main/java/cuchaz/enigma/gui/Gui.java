@@ -39,10 +39,7 @@ import cuchaz.enigma.gui.config.Themes;
 import cuchaz.enigma.gui.config.UiConfig;
 import cuchaz.enigma.gui.dialog.JavadocDialog;
 import cuchaz.enigma.gui.dialog.SearchDialog;
-import cuchaz.enigma.gui.elements.DeobfPanelPopupMenu;
-import cuchaz.enigma.gui.elements.EditorTabPopupMenu;
-import cuchaz.enigma.gui.elements.MenuBar;
-import cuchaz.enigma.gui.elements.ValidatableUi;
+import cuchaz.enigma.gui.elements.*;
 import cuchaz.enigma.gui.elements.rpanel.RPanel;
 import cuchaz.enigma.gui.elements.rpanel.WorkspaceRPanelContainer;
 import cuchaz.enigma.gui.events.EditorActionListener;
@@ -51,7 +48,6 @@ import cuchaz.enigma.gui.renderer.CallsTreeCellRenderer;
 import cuchaz.enigma.gui.renderer.ImplementationsTreeCellRenderer;
 import cuchaz.enigma.gui.renderer.InheritanceTreeCellRenderer;
 import cuchaz.enigma.gui.renderer.MessageListCellRenderer;
-import cuchaz.enigma.gui.util.History;
 import cuchaz.enigma.gui.util.LanguageUtil;
 import cuchaz.enigma.gui.util.ScaleUtil;
 import cuchaz.enigma.gui.util.SingleTreeSelectionModel;
@@ -70,17 +66,13 @@ import cuchaz.enigma.utils.validation.ValidationContext;
 
 public class Gui {
 
-	private final JFrame frame = new JFrame(Enigma.NAME);
+	private final MainWindow mainWindow = new MainWindow(Enigma.NAME);
 	private final GuiController controller;
 
-	// state
-	public History<EntryReference<Entry<?>, Entry<?>>> referenceHistory;
 	private ConnectionState connectionState;
 	private boolean isJarOpen;
 	private final Set<EditableType> editableTypes;
 	private boolean singleClassTree;
-
-	private final WorkspaceRPanelContainer workspace = new WorkspaceRPanelContainer();
 
 	private final RPanel structureRPanel = new RPanel();
 	private final RPanel inheritancePanel = new RPanel();
@@ -107,9 +99,7 @@ public class Gui {
 	private final JScrollPane messageScrollPane = new JScrollPane(this.messages);
 	private final JTextField chatBox = new JTextField();
 
-	private final JPanel statusBar = new JPanel(new BorderLayout());
 	private final JLabel connectionStatusLabel = new JLabel();
-	private final JLabel statusLabel = new JLabel();
 
 	private final EditorTabPopupMenu editorTabPopupMenu;
 	private final DeobfPanelPopupMenu deobfPanelPopupMenu;
@@ -139,13 +129,10 @@ public class Gui {
 		LanguageUtil.addListener(this::retranslateUi);
 		Themes.addListener((lookAndFeel, boxHighlightPainters) -> SwingUtilities.updateComponentTreeUI(this.getFrame()));
 
-		this.frame.setVisible(true);
+		this.mainWindow.setVisible(true);
 	}
 
 	private void setupUi() {
-		Container pane = this.frame.getContentPane();
-		pane.setLayout(new BorderLayout());
-
 		this.jarFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		this.tinyMappingsFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
@@ -297,10 +284,10 @@ public class Gui {
 		});
 
 		// layout controls
-		JPanel centerPanel = new JPanel();
-		centerPanel.setLayout(new BorderLayout());
-		centerPanel.add(infoPanel.getUi(), BorderLayout.NORTH);
-		centerPanel.add(openFiles, BorderLayout.CENTER);
+		Container workArea = this.mainWindow.workArea();
+		workArea.setLayout(new BorderLayout());
+		workArea.add(infoPanel.getUi(), BorderLayout.NORTH);
+		workArea.add(openFiles, BorderLayout.CENTER);
 
 		// left.getUi().setPreferredSize(ScaleUtil.getDimension(300, 0));
 		// right.getUi().setPreferredSize(ScaleUtil.getDimension(250, 0));
@@ -324,9 +311,6 @@ public class Gui {
 		messagePanel.getContentPane().add(messageScrollPane, BorderLayout.CENTER);
 		messagePanel.getContentPane().add(chatPanel, BorderLayout.SOUTH);
 
-		this.workspace.setWorkArea(centerPanel);
-		pane.add(this.workspace.getUi(), BorderLayout.CENTER);
-
 		// restore state
 		int[] layout = UiConfig.getLayout();
 		if (layout.length >= 4) {
@@ -336,59 +320,59 @@ public class Gui {
 			// this.logSplit.setDividerLocation(layout[3]);
 		}
 
-		this.workspace.getRightTop().attach(structureRPanel);
-		this.workspace.getRightTop().attach(inheritancePanel);
-		this.workspace.getRightTop().attach(implementationsPanel);
-		this.workspace.getRightTop().attach(callPanel);
-		this.workspace.getLeftTop().attach(obfPanel.getPanel());
-		this.workspace.getLeftBottom().attach(deobfPanel.getPanel());
-		this.workspace.getRightTop().attach(messagePanel);
-		this.workspace.getRightBottom().attach(userPanel);
+		WorkspaceRPanelContainer workspace = this.mainWindow.workspace();
+		workspace.getRightTop().attach(structureRPanel);
+		workspace.getRightTop().attach(inheritancePanel);
+		workspace.getRightTop().attach(implementationsPanel);
+		workspace.getRightTop().attach(callPanel);
+		workspace.getLeftTop().attach(obfPanel.getPanel());
+		workspace.getLeftBottom().attach(deobfPanel.getPanel());
+		workspace.getRightTop().attach(messagePanel);
+		workspace.getRightBottom().attach(userPanel);
 
-		this.workspace.addDragTarget(structureRPanel);
-		this.workspace.addDragTarget(inheritancePanel);
-		this.workspace.addDragTarget(implementationsPanel);
-		this.workspace.addDragTarget(callPanel);
-		this.workspace.addDragTarget(obfPanel.getPanel());
-		this.workspace.addDragTarget(deobfPanel.getPanel());
-		this.workspace.addDragTarget(messagePanel);
-		this.workspace.addDragTarget(userPanel);
+		workspace.addDragTarget(structureRPanel);
+		workspace.addDragTarget(inheritancePanel);
+		workspace.addDragTarget(implementationsPanel);
+		workspace.addDragTarget(callPanel);
+		workspace.addDragTarget(obfPanel.getPanel());
+		workspace.addDragTarget(deobfPanel.getPanel());
+		workspace.addDragTarget(messagePanel);
+		workspace.addDragTarget(userPanel);
 
-		this.frame.setJMenuBar(this.menuBar.getUi());
-
-		statusBar.setBorder(BorderFactory.createLoweredBevelBorder());
-		statusBar.add(statusLabel, BorderLayout.CENTER);
-		statusBar.add(connectionStatusLabel, BorderLayout.EAST);
-		pane.add(statusBar, BorderLayout.SOUTH);
+		this.mainWindow.statusBar().addPermanentComponent(this.connectionStatusLabel);
 
 		// init state
 		setConnectionState(ConnectionState.NOT_CONNECTED);
 		onCloseJar();
 
-		this.frame.addWindowListener(new WindowAdapter() {
+		JFrame frame = this.mainWindow.frame();
+		frame.addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent event) {
 				close();
 			}
 		});
 
-		// show the frame
-		this.frame.setSize(UiConfig.getWindowSize("Main Window", ScaleUtil.getDimension(1024, 576)));
-		this.frame.setMinimumSize(ScaleUtil.getDimension(640, 480));
-		this.frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		frame.setSize(UiConfig.getWindowSize("Main Window", ScaleUtil.getDimension(1024, 576)));
+		frame.setMinimumSize(ScaleUtil.getDimension(640, 480));
+		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 
 		Point windowPos = UiConfig.getWindowPos("Main Window", null);
 		if (windowPos != null) {
-			this.frame.setLocation(windowPos);
+			frame.setLocation(windowPos);
 		} else {
-			this.frame.setLocationRelativeTo(null);
+			frame.setLocationRelativeTo(null);
 		}
 
 		this.retranslateUi();
 	}
 
+	public MainWindow getMainWindow() {
+		return this.mainWindow;
+	}
+
 	public JFrame getFrame() {
-		return this.frame;
+		return this.mainWindow.frame();
 	}
 
 	public GuiController getController() {
@@ -414,7 +398,7 @@ public class Gui {
 
 	public void onFinishOpenJar(String jarName) {
 		// update gui
-		this.frame.setTitle(Enigma.NAME + " - " + jarName);
+		this.mainWindow.setTitle(Enigma.NAME + " - " + jarName);
 //		this.classesPanel.removeAll();
 //		this.classesPanel.add(isSingleClassTree() ? deobfPanel : splitClasses);
 		closeAllEditorTabs();
@@ -428,7 +412,7 @@ public class Gui {
 
 	public void onCloseJar() {
 		// update gui
-		this.frame.setTitle(Enigma.NAME);
+		this.mainWindow.setTitle(Enigma.NAME);
 		setObfClasses(null);
 		setDeobfClasses(null);
 		closeAllEditorTabs();
@@ -583,7 +567,7 @@ public class Gui {
 	public void startDocChange(EditorPanel editor) {
 		EntryReference<Entry<?>, Entry<?>> cursorReference = editor.getCursorReference();
 		if (cursorReference == null || !this.isEditable(EditableType.JAVADOC)) return;
-		JavadocDialog.show(frame, getController(), cursorReference);
+		JavadocDialog.show(mainWindow.frame(), getController(), cursorReference);
 	}
 
 	public void startRename(EditorPanel editor, String text) {
@@ -728,13 +712,13 @@ public class Gui {
 	}
 
 	public void showDiscardDiag(Function<Integer, Void> callback, String... options) {
-		int response = JOptionPane.showOptionDialog(this.frame, I18n.translate("prompt.close.summary"), I18n.translate("prompt.close.title"), JOptionPane.YES_NO_CANCEL_OPTION,
+		int response = JOptionPane.showOptionDialog(this.mainWindow.frame(), I18n.translate("prompt.close.summary"), I18n.translate("prompt.close.title"), JOptionPane.YES_NO_CANCEL_OPTION,
 				JOptionPane.QUESTION_MESSAGE, null, options, options[2]);
 		callback.apply(response);
 	}
 
 	public CompletableFuture<Void> saveMapping() {
-		if (this.enigmaMappingsFileChooser.getSelectedFile() != null || this.enigmaMappingsFileChooser.showSaveDialog(this.frame) == JFileChooser.APPROVE_OPTION)
+		if (this.enigmaMappingsFileChooser.getSelectedFile() != null || this.enigmaMappingsFileChooser.showSaveDialog(this.mainWindow.frame()) == JFileChooser.APPROVE_OPTION)
 			return this.controller.saveMappings(this.enigmaMappingsFileChooser.getSelectedFile().toPath());
 		return CompletableFuture.completedFuture(null);
 	}
@@ -759,8 +743,8 @@ public class Gui {
 	}
 
 	private void exit() {
-		UiConfig.setWindowPos("Main Window", this.frame.getLocationOnScreen());
-		UiConfig.setWindowSize("Main Window", this.frame.getSize());
+		UiConfig.setWindowPos("Main Window", this.mainWindow.frame().getLocationOnScreen());
+		UiConfig.setWindowSize("Main Window", this.mainWindow.frame().getSize());
 		// UiConfig.setLayout(
 		// 		this.splitClasses.getDividerLocation(),
 		// 		this.splitCenter.getDividerLocation(),
@@ -771,13 +755,15 @@ public class Gui {
 		if (searchDialog != null) {
 			searchDialog.dispose();
 		}
-		this.frame.dispose();
+		this.mainWindow.frame().dispose();
 		System.exit(0);
 	}
 
 	public void redraw() {
-		this.frame.validate();
-		this.frame.repaint();
+		JFrame frame = this.mainWindow.frame();
+
+		frame.validate();
+		frame.repaint();
 	}
 
 	public void onRenameFromClassTree(ValidationContext vc, Object prevData, Object data, DefaultMutableTreeNode node) {
@@ -867,19 +853,16 @@ public class Gui {
 		return searchDialog;
 	}
 
-
-	public MenuBar getMenuBar() {
-		return menuBar;
-	}
-
 	public void addMessage(Message message) {
 		JScrollBar verticalScrollBar = messageScrollPane.getVerticalScrollBar();
 		boolean isAtBottom = verticalScrollBar.getValue() >= verticalScrollBar.getMaximum() - verticalScrollBar.getModel().getExtent();
 		messageModel.addElement(message);
+
 		if (isAtBottom) {
 			SwingUtilities.invokeLater(() -> verticalScrollBar.setValue(verticalScrollBar.getMaximum() - verticalScrollBar.getModel().getExtent()));
 		}
-		statusLabel.setText(message.translate());
+
+		this.mainWindow.statusBar().showMessage(message.translate(), 5000);
 	}
 
 	public void setUserList(List<String> users) {
@@ -915,7 +898,6 @@ public class Gui {
 		}
 	}
 
-	// @Override
 	public void retranslateUi() {
 		this.jarFileChooser.setDialogTitle(I18n.translate("menu.file.jar.open"));
 		this.exportJarFileChooser.setDialogTitle(I18n.translate("menu.file.export.jar"));
@@ -941,7 +923,6 @@ public class Gui {
 
 	public void setConnectionState(ConnectionState state) {
 		connectionState = state;
-		statusLabel.setText(I18n.translate("status.ready"));
 		updateUiState();
 	}
 
@@ -951,10 +932,6 @@ public class Gui {
 
 	public ConnectionState getConnectionState() {
 		return this.connectionState;
-	}
-
-	public IdentifierPanel getInfoPanel() {
-		return infoPanel;
 	}
 
 	public boolean validateImmediateAction(Consumer<ValidationContext> op) {
