@@ -26,7 +26,7 @@ public class DeobfPanel {
 
 	public DeobfPanel(Gui gui) {
 		this.gui = gui;
-		this.deobfPanelPopupMenu = new DeobfPanelPopupMenu(gui);
+		this.deobfPanelPopupMenu = new DeobfPanelPopupMenu(this);
 
 		Container contentPane = panel.getContentPane();
 

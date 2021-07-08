@@ -1,12 +1,12 @@
 package cuchaz.enigma.gui.elements;
 
-import cuchaz.enigma.gui.ClassSelector;
-import cuchaz.enigma.gui.Gui;
-import cuchaz.enigma.utils.I18n;
-
-import javax.swing.*;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.tree.TreePath;
-import java.awt.*;
+
+import cuchaz.enigma.gui.ClassSelector;
+import cuchaz.enigma.gui.panels.DeobfPanel;
+import cuchaz.enigma.utils.I18n;
 
 public class DeobfPanelPopupMenu {
 
@@ -16,7 +16,7 @@ public class DeobfPanelPopupMenu {
     private final JMenuItem expandAll = new JMenuItem();
     private final JMenuItem collapseAll = new JMenuItem();
 
-    public DeobfPanelPopupMenu(Gui gui) {
+    public DeobfPanelPopupMenu(DeobfPanel panel) {
         this.ui = new JPopupMenu();
 
         this.ui.add(this.renamePackage);
@@ -25,7 +25,7 @@ public class DeobfPanelPopupMenu {
         this.ui.add(this.expandAll);
         this.ui.add(this.collapseAll);
 
-        ClassSelector deobfClasses = gui.getDeobfPanel().deobfClasses;
+        ClassSelector deobfClasses = panel.deobfClasses;
 
         this.renamePackage.addActionListener(a -> {
             TreePath path;
