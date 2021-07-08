@@ -97,7 +97,6 @@ public class Gui {
 	private final JLabel connectionStatusLabel = new JLabel();
 
 	private final EditorTabPopupMenu editorTabPopupMenu;
-	private final DeobfPanelPopupMenu deobfPanelPopupMenu;
 	private final JTabbedPane openFiles = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
 	private final HashBiMap<ClassEntry, EditorPanel> editors = HashBiMap.create();
 
@@ -117,7 +116,6 @@ public class Gui {
 		this.obfPanel = new ObfPanel(this);
 		this.menuBar = new MenuBar(this);
 		this.editorTabPopupMenu = new EditorTabPopupMenu(this);
-		this.deobfPanelPopupMenu = new DeobfPanelPopupMenu(this);
 		this.inheritanceTree = new InheritanceTree(this);
 		this.implementationsTree = new ImplementationsTree(this);
 
@@ -204,19 +202,6 @@ public class Gui {
 				}
 
 				showStructure(getActiveEditor());
-			}
-		});
-
-		deobfPanel.deobfClasses.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (SwingUtilities.isRightMouseButton(e)) {
-					deobfPanel.deobfClasses.setSelectionRow(deobfPanel.deobfClasses.getClosestRowForLocation(e.getX(), e.getY()));
-					int i = deobfPanel.deobfClasses.getRowForPath(deobfPanel.deobfClasses.getSelectionPath());
-					if (i != -1) {
-						deobfPanelPopupMenu.show(deobfPanel.deobfClasses, e.getX(), e.getY());
-					}
-				}
 			}
 		});
 
@@ -807,7 +792,6 @@ public class Gui {
 		this.menuBar.retranslateUi();
 		this.obfPanel.retranslateUi();
 		this.deobfPanel.retranslateUi();
-		this.deobfPanelPopupMenu.retranslateUi();
 		this.infoPanel.retranslateUi();
 		this.structurePanel.retranslateUi();
 		this.editorTabPopupMenu.retranslateUi();
