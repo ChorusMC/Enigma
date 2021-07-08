@@ -308,16 +308,8 @@ public class GuiController implements ClientPacketHandler {
 				this.referenceHistory.push(reference);
 			}
 		}
-		setReference(reference);
-	}
 
-	/**
-	 * Navigates to the reference without modifying history. If the class is not currently loaded, it will be loaded.
-	 *
-	 * @param reference the reference
-	 */
-	private void setReference(EntryReference<Entry<?>, Entry<?>> reference) {
-		gui.openClass(reference.getLocationClassEntry().getOutermostClass()).showReference(reference);
+		this.gui.showReference(reference);
 	}
 
 	public List<Token> getTokensForReference(DecompiledClassSource source, EntryReference<Entry<?>, Entry<?>> reference) {
@@ -333,7 +325,7 @@ public class GuiController implements ClientPacketHandler {
 
 	public void openPreviousReference() {
 		if (hasPreviousReference()) {
-			setReference(referenceHistory.goBack());
+			this.gui.showReference(referenceHistory.goBack());
 		}
 	}
 
@@ -343,7 +335,7 @@ public class GuiController implements ClientPacketHandler {
 
 	public void openNextReference() {
 		if (hasNextReference()) {
-			setReference(referenceHistory.goForward());
+			this.gui.showReference(referenceHistory.goForward());
 		}
 	}
 

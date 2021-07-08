@@ -28,14 +28,12 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Lists;
 
 import cuchaz.enigma.Enigma;
 import cuchaz.enigma.EnigmaProfile;
 import cuchaz.enigma.analysis.EntryReference;
 import cuchaz.enigma.analysis.StructureTreeNode;
-import cuchaz.enigma.classhandle.ClassHandle;
 import cuchaz.enigma.gui.config.Themes;
 import cuchaz.enigma.gui.config.UiConfig;
 import cuchaz.enigma.gui.dialog.JavadocDialog;
@@ -43,9 +41,9 @@ import cuchaz.enigma.gui.dialog.SearchDialog;
 import cuchaz.enigma.gui.elements.*;
 import cuchaz.enigma.gui.elements.rpanel.RPanel;
 import cuchaz.enigma.gui.elements.rpanel.WorkspaceRPanelContainer;
-import cuchaz.enigma.gui.events.EditorActionListener;
 import cuchaz.enigma.gui.panels.*;
 import cuchaz.enigma.gui.renderer.MessageListCellRenderer;
+import cuchaz.enigma.gui.util.GuiUtil;
 import cuchaz.enigma.gui.util.LanguageUtil;
 import cuchaz.enigma.gui.util.ScaleUtil;
 import cuchaz.enigma.network.Message;
@@ -81,6 +79,8 @@ public class Gui {
 	private final ImplementationsTree implementationsTree;
 	private final CallsTree callsTree;
 
+	private final EditorTabbedPane editorTabbedPane;
+
 	private final DefaultListModel<String> userModel = new DefaultListModel<>();
 	private final DefaultListModel<Message> messageModel = new DefaultListModel<>();
 	private final JList<String> users = new JList<>(userModel);
@@ -89,10 +89,6 @@ public class Gui {
 	private final JTextField chatBox = new JTextField();
 
 	private final JLabel connectionStatusLabel = new JLabel();
-
-	private final EditorTabPopupMenu editorTabPopupMenu;
-	private final JTabbedPane openFiles = new JTabbedPane(JTabbedPane.TOP, JTabbedPane.SCROLL_TAB_LAYOUT);
-	private final HashBiMap<ClassEntry, EditorPanel> editors = HashBiMap.create();
 
 	public final JFileChooser jarFileChooser = new JFileChooser();
 	public final JFileChooser tinyMappingsFileChooser = new JFileChooser();
@@ -109,10 +105,10 @@ public class Gui {
 		this.infoPanel = new IdentifierPanel(this);
 		this.obfPanel = new ObfPanel(this);
 		this.menuBar = new MenuBar(this);
-		this.editorTabPopupMenu = new EditorTabPopupMenu(this);
 		this.inheritanceTree = new InheritanceTree(this);
 		this.implementationsTree = new ImplementationsTree(this);
 		this.callsTree = new CallsTree(this);
+		this.editorTabbedPane = new EditorTabbedPane(this);
 
 		this.setupUi();
 
@@ -134,25 +130,11 @@ public class Gui {
 
 		this.exportJarFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
-		openFiles.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (SwingUtilities.isRightMouseButton(e)) {
-					int i = openFiles.getUI().tabForCoordinate(openFiles, e.getX(), e.getY());
-					if (i != -1) {
-						editorTabPopupMenu.show(openFiles, e.getX(), e.getY(), EditorPanel.byUi(openFiles.getComponentAt(i)));
-					}
-				}
-
-				showStructure(getActiveEditor());
-			}
-		});
-
 		// layout controls
 		Container workArea = this.mainWindow.workArea();
 		workArea.setLayout(new BorderLayout());
 		workArea.add(infoPanel.getUi(), BorderLayout.NORTH);
-		workArea.add(openFiles, BorderLayout.CENTER);
+		workArea.add(this.editorTabbedPane.getUi(), BorderLayout.CENTER);
 
 		// left.getUi().setPreferredSize(ScaleUtil.getDimension(300, 0));
 		// right.getUi().setPreferredSize(ScaleUtil.getDimension(250, 0));
@@ -266,7 +248,7 @@ public class Gui {
 		this.mainWindow.setTitle(Enigma.NAME + " - " + jarName);
 //		this.classesPanel.removeAll();
 //		this.classesPanel.add(isSingleClassTree() ? deobfPanel : splitClasses);
-		closeAllEditorTabs();
+		this.editorTabbedPane.closeAllEditorTabs();
 
 		// update menu
 		isJarOpen = true;
@@ -280,7 +262,7 @@ public class Gui {
 		this.mainWindow.setTitle(Enigma.NAME);
 		setObfClasses(null);
 		setDeobfClasses(null);
-		closeAllEditorTabs();
+		this.editorTabbedPane.closeAllEditorTabs();
 //		this.classesPanel.removeAll();
 
 		// update menu
@@ -292,53 +274,25 @@ public class Gui {
 	}
 
 	public EditorPanel openClass(ClassEntry entry) {
-		EditorPanel editorPanel = editors.computeIfAbsent(entry, e -> {
-			ClassHandle ch = controller.getClassHandleProvider().openClass(entry);
-			if (ch == null) return null;
-			EditorPanel ed = new EditorPanel(this);
-			ed.setup();
-			ed.setClassHandle(ch);
-			openFiles.addTab(ed.getFileName(), ed.getUi());
+		return this.editorTabbedPane.openClass(entry);
+	}
 
-			ClosableTabTitlePane titlePane = new ClosableTabTitlePane(ed.getFileName(), () -> closeEditor(ed));
-			openFiles.setTabComponentAt(openFiles.indexOfComponent(ed.getUi()), titlePane.getUi());
-			titlePane.setTabbedPane(openFiles);
+	@Nullable
+	public EditorPanel getActiveEditor() {
+		return this.editorTabbedPane.getActiveEditor();
+	}
 
-			ed.addListener(new EditorActionListener() {
-				@Override
-				public void onCursorReferenceChanged(EditorPanel editor, EntryReference<Entry<?>, Entry<?>> ref) {
-					updateSelectedReference(editor, ref);
-				}
+	public void closeEditor(EditorPanel editor) {
+		this.editorTabbedPane.closeEditor(editor);
+	}
 
-				@Override
-				public void onClassHandleChanged(EditorPanel editor, ClassEntry old, ClassHandle ch) {
-					editors.remove(old);
-					editors.put(ch.getRef(), editor);
-				}
-
-				@Override
-				public void onTitleChanged(EditorPanel editor, String title) {
-					titlePane.setText(editor.getFileName());
-				}
-			});
-
-			ed.getEditor().addKeyListener(new KeyAdapter() {
-				@Override
-				public void keyPressed(KeyEvent e) {
-					if (e.getKeyCode() == KeyEvent.VK_4 && (e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0) {
-						closeEditor(ed);
-					}
-				}
-			});
-
-			return ed;
-		});
-		if (editorPanel != null) {
-			openFiles.setSelectedComponent(editors.get(entry).getUi());
-			showStructure(editorPanel);
-		}
-
-		return editorPanel;
+	/**
+	 * Navigates to the reference without modifying history. If the class is not currently loaded, it will be loaded.
+	 *
+	 * @param reference the reference
+	 */
+	public void showReference(EntryReference<Entry<?>, Entry<?>> reference) {
+		this.editorTabbedPane.openClass(reference.getLocationClassEntry().getOutermostClass()).showReference(reference);
 	}
 
 	public void setObfClasses(Collection<ClassEntry> obfClasses) {
@@ -354,44 +308,6 @@ public class Gui {
 		updateUiState();
 	}
 
-	public void closeEditor(EditorPanel ed) {
-		openFiles.remove(ed.getUi());
-		editors.inverse().remove(ed);
-		showStructure(getActiveEditor());
-		ed.destroy();
-	}
-
-	public void closeAllEditorTabs() {
-		for (Iterator<EditorPanel> iter = editors.values().iterator(); iter.hasNext(); ) {
-			EditorPanel e = iter.next();
-			openFiles.remove(e.getUi());
-			e.destroy();
-			iter.remove();
-		}
-	}
-
-	public void closeTabsLeftOf(EditorPanel ed) {
-		int index = openFiles.indexOfComponent(ed.getUi());
-		for (int i = index - 1; i >= 0; i--) {
-			closeEditor(EditorPanel.byUi(openFiles.getComponentAt(i)));
-		}
-	}
-
-	public void closeTabsRightOf(EditorPanel ed) {
-		int index = openFiles.indexOfComponent(ed.getUi());
-		for (int i = openFiles.getTabCount() - 1; i > index; i--) {
-			closeEditor(EditorPanel.byUi(openFiles.getComponentAt(i)));
-		}
-	}
-
-	public void closeTabsExcept(EditorPanel ed) {
-		int index = openFiles.indexOfComponent(ed.getUi());
-		for (int i = openFiles.getTabCount() - 1; i >= 0; i--) {
-			if (i == index) continue;
-			closeEditor(EditorPanel.byUi(openFiles.getComponentAt(i)));
-		}
-	}
-
 	public void showTokens(EditorPanel editor, List<Token> tokens) {
 		if (tokens.size() > 1) {
 			this.controller.setTokenHandle(editor.getClassHandle().copy());
@@ -404,24 +320,13 @@ public class Gui {
 		editor.navigateToToken(tokens.get(0));
 	}
 
-	private void updateSelectedReference(EditorPanel editor, EntryReference<Entry<?>, Entry<?>> ref) {
-		if (editor != getActiveEditor()) return;
-
-		showCursorReference(ref);
-	}
-
-	private void showCursorReference(EntryReference<Entry<?>, Entry<?>> reference) {
+	public void showCursorReference(EntryReference<Entry<?>, Entry<?>> reference) {
 		infoPanel.setReference(reference == null ? null : reference.entry);
 	}
 
 	@Nullable
-	public EditorPanel getActiveEditor() {
-		return EditorPanel.byUi(openFiles.getSelectedComponent());
-	}
-
-	@Nullable
 	public EntryReference<Entry<?>, Entry<?>> getCursorReference() {
-		EditorPanel activeEditor = getActiveEditor();
+		EditorPanel activeEditor = this.editorTabbedPane.getActiveEditor();
 		return activeEditor == null ? null : activeEditor.getCursorReference();
 	}
 
@@ -432,13 +337,13 @@ public class Gui {
 	}
 
 	public void startRename(EditorPanel editor, String text) {
-		if (editor != getActiveEditor()) return;
+		if (editor != this.editorTabbedPane.getActiveEditor()) return;
 
 		infoPanel.startRenaming(text);
 	}
 
 	public void startRename(EditorPanel editor) {
-		if (editor != getActiveEditor()) return;
+		if (editor != this.editorTabbedPane.getActiveEditor()) return;
 
 		infoPanel.startRenaming();
 	}
@@ -715,8 +620,7 @@ public class Gui {
 		this.deobfPanel.retranslateUi();
 		this.infoPanel.retranslateUi();
 		this.structurePanel.retranslateUi();
-		this.editorTabPopupMenu.retranslateUi();
-		this.editors.values().forEach(EditorPanel::retranslateUi);
+		this.editorTabbedPane.retranslateUi();
 		this.inheritanceTree.retranslateUi();
 		this.implementationsTree.retranslateUi();
 		this.structurePanel.retranslateUi();
