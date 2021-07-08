@@ -27,7 +27,6 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
@@ -36,7 +35,6 @@ import com.google.common.collect.Lists;
 import cuchaz.enigma.Enigma;
 import cuchaz.enigma.EnigmaProfile;
 import cuchaz.enigma.analysis.EntryReference;
-import cuchaz.enigma.analysis.StructureTreeNode;
 import cuchaz.enigma.gui.config.Themes;
 import cuchaz.enigma.gui.config.UiConfig;
 import cuchaz.enigma.gui.dialog.JavadocDialog;
@@ -347,29 +345,7 @@ public class Gui {
 	}
 
 	public void showStructure(EditorPanel editor) {
-		JTree structureTree = this.structurePanel.getStructureTree();
-		structureTree.setModel(null);
-
-		if (editor == null) {
-			this.structurePanel.getSortingPanel().setVisible(false);
-			return;
-		}
-
-		ClassEntry classEntry = editor.getClassHandle().getRef();
-		if (classEntry == null) return;
-
-		this.structurePanel.getSortingPanel().setVisible(true);
-
-		// get the class structure
-		StructureTreeNode node = this.controller.getClassStructure(classEntry, this.structurePanel.getOptions());
-
-		// show the tree at the root
-		TreePath path = getPathToRoot(node);
-		structureTree.setModel(new DefaultTreeModel((TreeNode) path.getPathComponent(0)));
-		structureTree.expandPath(path);
-		structureTree.setSelectionRow(structureTree.getRowForPath(path));
-
-		redraw();
+		this.structurePanel.showStructure(editor);
 	}
 
 	public void showInheritance(EditorPanel editor) {
