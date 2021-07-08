@@ -33,7 +33,8 @@ import com.google.common.collect.Lists;
 
 import cuchaz.enigma.Enigma;
 import cuchaz.enigma.EnigmaProfile;
-import cuchaz.enigma.analysis.*;
+import cuchaz.enigma.analysis.EntryReference;
+import cuchaz.enigma.analysis.StructureTreeNode;
 import cuchaz.enigma.classhandle.ClassHandle;
 import cuchaz.enigma.gui.config.Themes;
 import cuchaz.enigma.gui.config.UiConfig;
@@ -44,11 +45,9 @@ import cuchaz.enigma.gui.elements.rpanel.RPanel;
 import cuchaz.enigma.gui.elements.rpanel.WorkspaceRPanelContainer;
 import cuchaz.enigma.gui.events.EditorActionListener;
 import cuchaz.enigma.gui.panels.*;
-import cuchaz.enigma.gui.renderer.CallsTreeCellRenderer;
 import cuchaz.enigma.gui.renderer.MessageListCellRenderer;
 import cuchaz.enigma.gui.util.LanguageUtil;
 import cuchaz.enigma.gui.util.ScaleUtil;
-import cuchaz.enigma.gui.util.SingleTreeSelectionModel;
 import cuchaz.enigma.network.Message;
 import cuchaz.enigma.network.packet.MessageC2SPacket;
 import cuchaz.enigma.source.Token;
@@ -56,8 +55,6 @@ import cuchaz.enigma.translation.mapping.EntryChange;
 import cuchaz.enigma.translation.mapping.EntryRemapper;
 import cuchaz.enigma.translation.representation.entry.ClassEntry;
 import cuchaz.enigma.translation.representation.entry.Entry;
-import cuchaz.enigma.translation.representation.entry.FieldEntry;
-import cuchaz.enigma.translation.representation.entry.MethodEntry;
 import cuchaz.enigma.utils.I18n;
 import cuchaz.enigma.utils.validation.ParameterizedMessage;
 import cuchaz.enigma.utils.validation.ValidationContext;
@@ -72,7 +69,6 @@ public class Gui {
 	private final Set<EditableType> editableTypes;
 	private boolean singleClassTree;
 
-	private final RPanel callPanel = new RPanel();
 	private final RPanel messagePanel = new RPanel();
 	private final RPanel userPanel = new RPanel();
 
@@ -83,9 +79,7 @@ public class Gui {
 	private final StructurePanel structurePanel;
 	private final InheritanceTree inheritanceTree;
 	private final ImplementationsTree implementationsTree;
-
-	private final JTree callsTree = new JTree();
-	private final JList<Token> tokens = new JList<>();
+	private final CallsTree callsTree;
 
 	private final DefaultListModel<String> userModel = new DefaultListModel<>();
 	private final DefaultListModel<Message> messageModel = new DefaultListModel<>();
@@ -118,6 +112,7 @@ public class Gui {
 		this.editorTabPopupMenu = new EditorTabPopupMenu(this);
 		this.inheritanceTree = new InheritanceTree(this);
 		this.implementationsTree = new ImplementationsTree(this);
+		this.callsTree = new CallsTree(this);
 
 		this.setupUi();
 
@@ -138,58 +133,6 @@ public class Gui {
 		this.exportSourceFileChooser.setAcceptAllFileFilterUsed(false);
 
 		this.exportJarFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-
-		callsTree.setModel(null);
-		callsTree.setCellRenderer(new CallsTreeCellRenderer(this));
-		callsTree.setSelectionModel(new SingleTreeSelectionModel());
-		callsTree.setShowsRootHandles(true);
-		callsTree.addMouseListener(new MouseAdapter() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public void mouseClicked(MouseEvent event) {
-				if (event.getClickCount() >= 2 && event.getButton() == MouseEvent.BUTTON1) {
-					// get the selected node
-					TreePath path = callsTree.getSelectionPath();
-					if (path == null) {
-						return;
-					}
-
-					Object node = path.getLastPathComponent();
-					if (node instanceof ReferenceTreeNode referenceNode) {
-						if (referenceNode.getReference() != null) {
-							controller.navigateTo(referenceNode.getReference());
-						} else {
-							controller.navigateTo(referenceNode.getEntry());
-						}
-					}
-				}
-			}
-		});
-		tokens.setCellRenderer(new TokenListCellRenderer(controller));
-		tokens.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		tokens.setLayoutOrientation(JList.VERTICAL);
-		tokens.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent event) {
-				if (event.getClickCount() == 2) {
-					Token selected = tokens.getSelectedValue();
-					if (selected != null) {
-						openClass(controller.getTokenHandle().getRef()).navigateToToken(selected);
-					}
-				}
-			}
-		});
-		tokens.setPreferredSize(ScaleUtil.getDimension(0, 200));
-		tokens.setMinimumSize(ScaleUtil.getDimension(0, 200));
-		JSplitPane callPanelContentPane = new JSplitPane(
-				JSplitPane.VERTICAL_SPLIT,
-				true,
-				new JScrollPane(callsTree),
-				new JScrollPane(tokens)
-		);
-		callPanelContentPane.setResizeWeight(1); // let the top side take all the slack
-		callPanelContentPane.resetToPreferredSizes();
-		callPanel.setContentPane(callPanelContentPane);
 
 		openFiles.addMouseListener(new MouseAdapter() {
 			@Override
@@ -246,7 +189,7 @@ public class Gui {
 		workspace.getRightTop().attach(structurePanel.getPanel());
 		workspace.getRightTop().attach(inheritanceTree.getPanel());
 		workspace.getRightTop().attach(implementationsTree.getPanel());
-		workspace.getRightTop().attach(callPanel);
+		workspace.getRightTop().attach(callsTree.getPanel());
 		workspace.getLeftTop().attach(obfPanel.getPanel());
 		workspace.getLeftBottom().attach(deobfPanel.getPanel());
 		workspace.getRightTop().attach(messagePanel);
@@ -255,7 +198,7 @@ public class Gui {
 		workspace.addDragTarget(structurePanel.getPanel());
 		workspace.addDragTarget(inheritanceTree.getPanel());
 		workspace.addDragTarget(implementationsTree.getPanel());
-		workspace.addDragTarget(callPanel);
+		workspace.addDragTarget(callsTree.getPanel());
 		workspace.addDragTarget(obfPanel.getPanel());
 		workspace.addDragTarget(deobfPanel.getPanel());
 		workspace.addDragTarget(messagePanel);
@@ -449,20 +392,16 @@ public class Gui {
 		}
 	}
 
-	public void showTokens(EditorPanel editor, Collection<Token> tokens) {
-		Vector<Token> sortedTokens = new Vector<>(tokens);
-		Collections.sort(sortedTokens);
-		if (sortedTokens.size() > 1) {
-			// sort the tokens and update the tokens panel
+	public void showTokens(EditorPanel editor, List<Token> tokens) {
+		if (tokens.size() > 1) {
 			this.controller.setTokenHandle(editor.getClassHandle().copy());
-			this.tokens.setListData(sortedTokens);
-			this.tokens.setSelectedIndex(0);
+			this.callsTree.showTokens(tokens);
 		} else {
-			this.tokens.setListData(new Vector<>());
+			this.callsTree.clearTokens();
 		}
 
 		// show the first token
-		editor.navigateToToken(sortedTokens.get(0));
+		editor.navigateToToken(tokens.get(0));
 	}
 
 	private void updateSelectedReference(EditorPanel editor, EntryReference<Entry<?>, Entry<?>> ref) {
@@ -535,8 +474,6 @@ public class Gui {
 		if (cursorReference == null) return;
 
 		this.inheritanceTree.display(cursorReference.entry);
-
-		redraw();
 	}
 
 	public void showImplementations(EditorPanel editor) {
@@ -544,28 +481,13 @@ public class Gui {
 		if (cursorReference == null) return;
 
 		this.implementationsTree.display(cursorReference.entry);
-
-		redraw();
 	}
 
 	public void showCalls(EditorPanel editor, boolean recurse) {
 		EntryReference<Entry<?>, Entry<?>> cursorReference = editor.getCursorReference();
 		if (cursorReference == null) return;
 
-		if (cursorReference.entry instanceof ClassEntry) {
-			ClassReferenceTreeNode node = this.controller.getClassReferences((ClassEntry) cursorReference.entry);
-			callsTree.setModel(new DefaultTreeModel(node));
-		} else if (cursorReference.entry instanceof FieldEntry) {
-			FieldReferenceTreeNode node = this.controller.getFieldReferences((FieldEntry) cursorReference.entry);
-			callsTree.setModel(new DefaultTreeModel(node));
-		} else if (cursorReference.entry instanceof MethodEntry) {
-			MethodReferenceTreeNode node = this.controller.getMethodReferences((MethodEntry) cursorReference.entry, recurse);
-			callsTree.setModel(new DefaultTreeModel(node));
-		}
-
-		callPanel.show();
-
-		redraw();
+		this.callsTree.showCalls(cursorReference.entry, recurse);
 	}
 
 	public void toggleMapping(EditorPanel editor) {
@@ -782,7 +704,6 @@ public class Gui {
 	public void retranslateUi() {
 		this.jarFileChooser.setDialogTitle(I18n.translate("menu.file.jar.open"));
 		this.exportJarFileChooser.setDialogTitle(I18n.translate("menu.file.export.jar"));
-		this.callPanel.setTitle(I18n.translate("info_panel.tree.calls"));
 		this.userPanel.setTitle(I18n.translate("log_panel.users"));
 		this.messagePanel.setTitle(I18n.translate("log_panel.messages"));
 		this.connectionStatusLabel.setText(I18n.translate(connectionState == ConnectionState.NOT_CONNECTED ? "status.disconnected" : "status.connected"));
@@ -799,6 +720,7 @@ public class Gui {
 		this.inheritanceTree.retranslateUi();
 		this.implementationsTree.retranslateUi();
 		this.structurePanel.retranslateUi();
+		this.callsTree.retranslateUi();
 	}
 
 	public void setConnectionState(ConnectionState state) {

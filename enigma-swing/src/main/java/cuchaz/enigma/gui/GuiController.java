@@ -320,13 +320,14 @@ public class GuiController implements ClientPacketHandler {
 		gui.openClass(reference.getLocationClassEntry().getOutermostClass()).showReference(reference);
 	}
 
-	public Collection<Token> getTokensForReference(DecompiledClassSource source, EntryReference<Entry<?>, Entry<?>> reference) {
+	public List<Token> getTokensForReference(DecompiledClassSource source, EntryReference<Entry<?>, Entry<?>> reference) {
 		EntryRemapper mapper = this.project.getMapper();
 
 		SourceIndex index = source.getIndex();
 		return mapper.getObfResolver().resolveReference(reference, ResolutionStrategy.RESOLVE_CLOSEST)
 				.stream()
 				.flatMap(r -> index.getReferenceTokens(r).stream())
+				.sorted()
 				.toList();
 	}
 
