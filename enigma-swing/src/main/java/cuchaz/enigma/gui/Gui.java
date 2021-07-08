@@ -45,7 +45,6 @@ import cuchaz.enigma.gui.elements.rpanel.WorkspaceRPanelContainer;
 import cuchaz.enigma.gui.events.EditorActionListener;
 import cuchaz.enigma.gui.panels.*;
 import cuchaz.enigma.gui.renderer.CallsTreeCellRenderer;
-import cuchaz.enigma.gui.renderer.ImplementationsTreeCellRenderer;
 import cuchaz.enigma.gui.renderer.MessageListCellRenderer;
 import cuchaz.enigma.gui.util.LanguageUtil;
 import cuchaz.enigma.gui.util.ScaleUtil;
@@ -74,20 +73,18 @@ public class Gui {
 	private boolean singleClassTree;
 
 	private final RPanel structureRPanel = new RPanel();
-	private final RPanel implementationsPanel = new RPanel();
 	private final RPanel callPanel = new RPanel();
 	private final RPanel messagePanel = new RPanel();
 	private final RPanel userPanel = new RPanel();
-
-	private final InheritanceTree inheritanceTree;
 
 	private final MenuBar menuBar;
 	private final ObfPanel obfPanel;
 	private final DeobfPanel deobfPanel;
 	private final IdentifierPanel infoPanel;
 	private final StructurePanel structurePanel;
+	private final InheritanceTree inheritanceTree;
+	private final ImplementationsTree implementationsTree;
 
-	private final JTree implementationsTree = new JTree();
 	private final JTree callsTree = new JTree();
 	private final JList<Token> tokens = new JList<>();
 
@@ -123,6 +120,7 @@ public class Gui {
 		this.editorTabPopupMenu = new EditorTabPopupMenu(this);
 		this.deobfPanelPopupMenu = new DeobfPanelPopupMenu(this);
 		this.inheritanceTree = new InheritanceTree(this);
+		this.implementationsTree = new ImplementationsTree(this);
 
 		this.setupUi();
 
@@ -146,32 +144,6 @@ public class Gui {
 
 		this.structureRPanel.getContentPane().setLayout(new BorderLayout());
 		this.structureRPanel.getContentPane().add(this.structurePanel);
-
-		implementationsTree.setModel(null);
-		implementationsTree.setCellRenderer(new ImplementationsTreeCellRenderer(this));
-		implementationsTree.setSelectionModel(new SingleTreeSelectionModel());
-		implementationsTree.setShowsRootHandles(true);
-		implementationsTree.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent event) {
-				if (event.getClickCount() >= 2 && event.getButton() == MouseEvent.BUTTON1) {
-					// get the selected node
-					TreePath path = implementationsTree.getSelectionPath();
-					if (path == null) {
-						return;
-					}
-
-					Object node = path.getLastPathComponent();
-					if (node instanceof ClassImplementationsTreeNode classNode) {
-						controller.navigateTo(classNode.getClassEntry());
-					} else if (node instanceof MethodImplementationsTreeNode methodNode) {
-						controller.navigateTo(methodNode.getMethodEntry());
-					}
-				}
-			}
-		});
-		implementationsPanel.getContentPane().setLayout(new BorderLayout());
-		implementationsPanel.getContentPane().add(new JScrollPane(implementationsTree));
 
 		callsTree.setModel(null);
 		callsTree.setCellRenderer(new CallsTreeCellRenderer(this));
@@ -292,7 +264,7 @@ public class Gui {
 		WorkspaceRPanelContainer workspace = this.mainWindow.workspace();
 		workspace.getRightTop().attach(structureRPanel);
 		workspace.getRightTop().attach(inheritanceTree.getPanel());
-		workspace.getRightTop().attach(implementationsPanel);
+		workspace.getRightTop().attach(implementationsTree.getPanel());
 		workspace.getRightTop().attach(callPanel);
 		workspace.getLeftTop().attach(obfPanel.getPanel());
 		workspace.getLeftBottom().attach(deobfPanel.getPanel());
@@ -301,7 +273,7 @@ public class Gui {
 
 		workspace.addDragTarget(structureRPanel);
 		workspace.addDragTarget(inheritanceTree.getPanel());
-		workspace.addDragTarget(implementationsPanel);
+		workspace.addDragTarget(implementationsTree.getPanel());
 		workspace.addDragTarget(callPanel);
 		workspace.addDragTarget(obfPanel.getPanel());
 		workspace.addDragTarget(deobfPanel.getPanel());
@@ -590,26 +562,7 @@ public class Gui {
 		EntryReference<Entry<?>, Entry<?>> cursorReference = editor.getCursorReference();
 		if (cursorReference == null) return;
 
-		implementationsTree.setModel(null);
-
-		DefaultMutableTreeNode node = null;
-
-		// get the class implementations
-		if (cursorReference.entry instanceof ClassEntry)
-			node = this.controller.getClassImplementations((ClassEntry) cursorReference.entry);
-		else // get the method implementations
-			if (cursorReference.entry instanceof MethodEntry)
-				node = this.controller.getMethodImplementations((MethodEntry) cursorReference.entry);
-
-		if (node != null) {
-			// show the tree at the root
-			TreePath path = getPathToRoot(node);
-			implementationsTree.setModel(new DefaultTreeModel((TreeNode) path.getPathComponent(0)));
-			implementationsTree.expandPath(path);
-			implementationsTree.setSelectionRow(implementationsTree.getRowForPath(path));
-		}
-
-		implementationsPanel.show();
+		this.implementationsTree.display(cursorReference.entry);
 
 		redraw();
 	}
@@ -849,7 +802,6 @@ public class Gui {
 		this.jarFileChooser.setDialogTitle(I18n.translate("menu.file.jar.open"));
 		this.exportJarFileChooser.setDialogTitle(I18n.translate("menu.file.export.jar"));
 		this.structureRPanel.setTitle(I18n.translate("info_panel.tree.structure"));
-		this.implementationsPanel.setTitle(I18n.translate("info_panel.tree.implementations"));
 		this.callPanel.setTitle(I18n.translate("info_panel.tree.calls"));
 		this.userPanel.setTitle(I18n.translate("log_panel.users"));
 		this.messagePanel.setTitle(I18n.translate("log_panel.messages"));
@@ -866,6 +818,7 @@ public class Gui {
 		this.editorTabPopupMenu.retranslateUi();
 		this.editors.values().forEach(EditorPanel::retranslateUi);
 		this.inheritanceTree.retranslateUi();
+		this.implementationsTree.retranslateUi();
 	}
 
 	public void setConnectionState(ConnectionState state) {

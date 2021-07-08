@@ -2,8 +2,6 @@ package cuchaz.enigma.gui.elements;
 
 import java.awt.BorderLayout;
 import java.awt.event.MouseEvent;
-import java.util.Collections;
-import java.util.List;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
@@ -12,13 +10,11 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
-import com.google.common.collect.Lists;
-
-import cuchaz.enigma.analysis.ClassInheritanceTreeNode;
-import cuchaz.enigma.analysis.MethodInheritanceTreeNode;
+import cuchaz.enigma.analysis.ClassImplementationsTreeNode;
+import cuchaz.enigma.analysis.MethodImplementationsTreeNode;
 import cuchaz.enigma.gui.Gui;
 import cuchaz.enigma.gui.elements.rpanel.RPanel;
-import cuchaz.enigma.gui.renderer.InheritanceTreeCellRenderer;
+import cuchaz.enigma.gui.renderer.ImplementationsTreeCellRenderer;
 import cuchaz.enigma.gui.util.GuiUtil;
 import cuchaz.enigma.gui.util.MouseListenerUtil;
 import cuchaz.enigma.gui.util.SingleTreeSelectionModel;
@@ -27,18 +23,18 @@ import cuchaz.enigma.translation.representation.entry.Entry;
 import cuchaz.enigma.translation.representation.entry.MethodEntry;
 import cuchaz.enigma.utils.I18n;
 
-public class InheritanceTree {
+public class ImplementationsTree {
 	private final RPanel panel = new RPanel();
 
 	private final JTree tree = new JTree();
 
 	private final Gui gui;
 
-	public InheritanceTree(Gui gui) {
+	public ImplementationsTree(Gui gui) {
 		this.gui = gui;
 
 		this.tree.setModel(null);
-		this.tree.setCellRenderer(new InheritanceTreeCellRenderer(this.gui));
+		this.tree.setCellRenderer(new ImplementationsTreeCellRenderer(gui));
 		this.tree.setSelectionModel(new SingleTreeSelectionModel());
 		this.tree.setShowsRootHandles(true);
 		this.tree.addMouseListener(MouseListenerUtil.onClick(this::onClick));
@@ -50,20 +46,16 @@ public class InheritanceTree {
 	private void onClick(MouseEvent event) {
 		if (event.getClickCount() >= 2 && event.getButton() == MouseEvent.BUTTON1) {
 			// get the selected node
-			TreePath path = tree.getSelectionPath();
+			TreePath path = this.tree.getSelectionPath();
 			if (path == null) {
 				return;
 			}
 
 			Object node = path.getLastPathComponent();
-			if (node instanceof ClassInheritanceTreeNode) {
-				ClassInheritanceTreeNode classNode = (ClassInheritanceTreeNode) node;
-				gui.getController().navigateTo(new ClassEntry(classNode.getObfClassName()));
-			} else if (node instanceof MethodInheritanceTreeNode) {
-				MethodInheritanceTreeNode methodNode = (MethodInheritanceTreeNode) node;
-				if (methodNode.isImplemented()) {
-					gui.getController().navigateTo(methodNode.getMethodEntry());
-				}
+			if (node instanceof ClassImplementationsTreeNode classNode) {
+				this.gui.getController().navigateTo(classNode.getClassEntry());
+			} else if (node instanceof MethodImplementationsTreeNode methodNode) {
+				this.gui.getController().navigateTo(methodNode.getMethodEntry());
 			}
 		}
 	}
@@ -74,9 +66,9 @@ public class InheritanceTree {
 		DefaultMutableTreeNode node = null;
 
 		if (entry instanceof ClassEntry classEntry) {
-			node = this.gui.getController().getClassInheritance(classEntry);
+			node = this.gui.getController().getClassImplementations(classEntry);
 		} else if (entry instanceof MethodEntry methodEntry) {
-			node = this.gui.getController().getMethodInheritance(methodEntry);
+			node = this.gui.getController().getMethodImplementations(methodEntry);
 		}
 
 		if (node != null) {
@@ -91,7 +83,7 @@ public class InheritanceTree {
 	}
 
 	public void retranslateUi() {
-		this.panel.setTitle(I18n.translate("info_panel.tree.inheritance"));
+		this.panel.setTitle(I18n.translate("info_panel.tree.implementations"));
 	}
 
 	public RPanel getPanel() {
