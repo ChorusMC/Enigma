@@ -13,7 +13,6 @@ import cuchaz.enigma.analysis.MethodInheritanceTreeNode;
 import cuchaz.enigma.gui.Gui;
 import cuchaz.enigma.gui.elements.rpanel.RPanel;
 import cuchaz.enigma.gui.util.GuiUtil;
-import cuchaz.enigma.gui.util.MouseListenerUtil;
 import cuchaz.enigma.gui.util.SingleTreeSelectionModel;
 import cuchaz.enigma.translation.representation.entry.ClassEntry;
 import cuchaz.enigma.translation.representation.entry.Entry;
@@ -32,7 +31,7 @@ public abstract class AbstractInheritanceTree {
 		this.tree.setCellRenderer(cellRenderer);
 		this.tree.setSelectionModel(new SingleTreeSelectionModel());
 		this.tree.setShowsRootHandles(true);
-		this.tree.addMouseListener(MouseListenerUtil.onClick(this::onClick));
+		this.tree.addMouseListener(GuiUtil.onMouseClick(this::onClick));
 
 		this.panel.getContentPane().setLayout(new BorderLayout());
 		this.panel.getContentPane().add(new JScrollPane(this.tree));

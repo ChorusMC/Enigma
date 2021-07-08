@@ -14,7 +14,7 @@ import cuchaz.enigma.gui.Gui;
 import cuchaz.enigma.gui.TokenListCellRenderer;
 import cuchaz.enigma.gui.elements.rpanel.RPanel;
 import cuchaz.enigma.gui.renderer.CallsTreeCellRenderer;
-import cuchaz.enigma.gui.util.MouseListenerUtil;
+import cuchaz.enigma.gui.util.GuiUtil;
 import cuchaz.enigma.gui.util.ScaleUtil;
 import cuchaz.enigma.gui.util.SingleTreeSelectionModel;
 import cuchaz.enigma.source.Token;
@@ -39,12 +39,12 @@ public class CallsTree {
 		this.callsTree.setCellRenderer(new CallsTreeCellRenderer(gui));
 		this.callsTree.setSelectionModel(new SingleTreeSelectionModel());
 		this.callsTree.setShowsRootHandles(true);
-		this.callsTree.addMouseListener(MouseListenerUtil.onClick(this::onTreeClicked));
+		this.callsTree.addMouseListener(GuiUtil.onMouseClick(this::onTreeClicked));
 
 		this.tokens.setCellRenderer(new TokenListCellRenderer(gui.getController()));
 		this.tokens.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		this.tokens.setLayoutOrientation(JList.VERTICAL);
-		this.tokens.addMouseListener(MouseListenerUtil.onClick(this::onTokenClicked));
+		this.tokens.addMouseListener(GuiUtil.onMouseClick(this::onTokenClicked));
 		this.tokens.setPreferredSize(ScaleUtil.getDimension(0, 200));
 		this.tokens.setMinimumSize(ScaleUtil.getDimension(0, 200));
 

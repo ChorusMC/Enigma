@@ -14,7 +14,6 @@ import cuchaz.enigma.gui.elements.rpanel.RPanel;
 import cuchaz.enigma.gui.renderer.StructureOptionListCellRenderer;
 import cuchaz.enigma.gui.util.GridBagConstraintsBuilder;
 import cuchaz.enigma.gui.util.GuiUtil;
-import cuchaz.enigma.gui.util.MouseListenerUtil;
 import cuchaz.enigma.gui.util.SingleTreeSelectionModel;
 import cuchaz.enigma.translation.representation.entry.ClassEntry;
 import cuchaz.enigma.translation.representation.entry.FieldEntry;
@@ -70,7 +69,7 @@ public class StructurePanel {
         this.structureTree.setCellRenderer(new StructureTreeCellRenderer(gui));
         this.structureTree.setSelectionModel(new SingleTreeSelectionModel());
         this.structureTree.setShowsRootHandles(true);
-        this.structureTree.addMouseListener(MouseListenerUtil.onClick(this::onClick));
+        this.structureTree.addMouseListener(GuiUtil.onMouseClick(this::onClick));
 
         this.retranslateUi();
 

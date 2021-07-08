@@ -11,7 +11,7 @@ import cuchaz.enigma.gui.ClassSelector;
 import cuchaz.enigma.gui.Gui;
 import cuchaz.enigma.gui.elements.DeobfPanelPopupMenu;
 import cuchaz.enigma.gui.elements.rpanel.RPanel;
-import cuchaz.enigma.gui.util.MouseListenerUtil;
+import cuchaz.enigma.gui.util.GuiUtil;
 import cuchaz.enigma.utils.I18n;
 
 public class DeobfPanel {
@@ -37,7 +37,7 @@ public class DeobfPanel {
 		contentPane.setLayout(new BorderLayout());
 		contentPane.add(new JScrollPane(this.deobfClasses), BorderLayout.CENTER);
 
-		this.deobfClasses.addMouseListener(MouseListenerUtil.onPress(this::onPress));
+		this.deobfClasses.addMouseListener(GuiUtil.onMousePress(this::onPress));
 
 		this.retranslateUi();
 	}
