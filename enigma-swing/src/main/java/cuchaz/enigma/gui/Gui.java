@@ -13,7 +13,6 @@ package cuchaz.enigma.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -196,16 +195,9 @@ public class Gui {
 		JFrame frame = this.mainWindow.frame();
 		frame.addWindowListener(GuiUtil.onWindowClose(e -> this.close()));
 
-		frame.setSize(UiConfig.getWindowSize("Main Window", ScaleUtil.getDimension(1024, 576)));
-		frame.setMinimumSize(ScaleUtil.getDimension(640, 480));
+		frame.setSize(ScaleUtil.getDimension(1024, 576));
 		frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-
-		Point windowPos = UiConfig.getWindowPos("Main Window", null);
-		if (windowPos != null) {
-			frame.setLocation(windowPos);
-		} else {
-			frame.setLocationRelativeTo(null);
-		}
+		UiConfig.restoreWindowState(this.mainWindow);
 
 		this.retranslateUi();
 	}
@@ -425,13 +417,7 @@ public class Gui {
 	}
 
 	private void exit() {
-		UiConfig.setWindowPos("Main Window", this.mainWindow.frame().getLocationOnScreen());
-		UiConfig.setWindowSize("Main Window", this.mainWindow.frame().getSize());
-		// UiConfig.setLayout(
-		// 		this.splitClasses.getDividerLocation(),
-		// 		this.splitCenter.getDividerLocation(),
-		// 		this.splitRight.getDividerLocation(),
-		// 		this.logSplit.getDividerLocation());
+		UiConfig.saveWindowState(this.mainWindow);
 		UiConfig.save();
 
 		if (searchDialog != null) {

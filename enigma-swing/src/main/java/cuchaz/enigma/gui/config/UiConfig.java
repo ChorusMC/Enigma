@@ -1,11 +1,12 @@
 package cuchaz.enigma.gui.config;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 import java.util.Optional;
-import java.util.OptionalInt;
 
 import cuchaz.enigma.config.ConfigContainer;
 import cuchaz.enigma.config.ConfigSection;
+import cuchaz.enigma.gui.elements.MainWindow;
 import cuchaz.enigma.gui.util.ScaleUtil;
 import cuchaz.enigma.utils.I18n;
 
@@ -282,50 +283,12 @@ public final class UiConfig {
 		return String.format("%s-%s-%s", font.getName(), s, font.getSize());
 	}
 
-	public static Dimension getWindowSize(String window, Dimension fallback) {
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		ConfigSection section = swing.data().section(window);
-		OptionalInt width = section.getInt(String.format("Width %s", screenSize.width));
-		OptionalInt height = section.getInt(String.format("Height %s", screenSize.height));
-		if (width.isPresent() && height.isPresent()) {
-			return new Dimension(width.getAsInt(), height.getAsInt());
-		} else {
-			return fallback;
-		}
+	public static void saveWindowState(MainWindow win) {
+		win.saveState(swing.data().section("Main Window"));
 	}
 
-	public static void setWindowSize(String window, Dimension dim) {
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		ConfigSection section = swing.data().section(window);
-		section.setInt(String.format("Width %s", screenSize.width), dim.width);
-		section.setInt(String.format("Height %s", screenSize.height), dim.height);
-	}
-
-	public static Point getWindowPos(String window, Point fallback) {
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		ConfigSection section = swing.data().section(window);
-		OptionalInt x = section.getInt(String.format("X %s", screenSize.width));
-		OptionalInt y = section.getInt(String.format("Y %s", screenSize.height));
-		if (x.isPresent() && y.isPresent()) {
-			int ix = x.getAsInt();
-			int iy = y.getAsInt();
-
-			// Ensure that the position is on the screen.
-			if (ix < 0 || iy < 0 || ix > screenSize.width || iy > screenSize.height) {
-				return fallback;
-			}
-
-			return new Point(ix, iy);
-		} else {
-			return fallback;
-		}
-	}
-
-	public static void setWindowPos(String window, Point rect) {
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		ConfigSection section = swing.data().section(window);
-		section.setInt(String.format("X %s", screenSize.width), rect.x);
-		section.setInt(String.format("Y %s", screenSize.height), rect.y);
+	public static void restoreWindowState(MainWindow win) {
+		win.restoreState(swing.data().section("Main Window"));
 	}
 
 	public static String getLastSelectedDir() {
