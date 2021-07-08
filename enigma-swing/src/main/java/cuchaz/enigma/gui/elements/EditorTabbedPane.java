@@ -31,7 +31,7 @@ public class EditorTabbedPane {
 
 	public EditorTabbedPane(Gui gui) {
 		this.gui = gui;
-		this.editorTabPopupMenu = new EditorTabPopupMenu(this, gui);
+		this.editorTabPopupMenu = new EditorTabPopupMenu(this);
 
 		this.openFiles.addMouseListener(GuiUtil.onMousePress(this::onTabPressed));
 	}

@@ -14,9 +14,12 @@ package cuchaz.enigma.gui;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.Point;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -193,12 +196,7 @@ public class Gui {
 		onCloseJar();
 
 		JFrame frame = this.mainWindow.frame();
-		frame.addWindowListener(new WindowAdapter() {
-			@Override
-			public void windowClosing(WindowEvent event) {
-				close();
-			}
-		});
+		frame.addWindowListener(GuiUtil.onWindowClose(e -> this.close()));
 
 		frame.setSize(UiConfig.getWindowSize("Main Window", ScaleUtil.getDimension(1024, 576)));
 		frame.setMinimumSize(ScaleUtil.getDimension(640, 480));
