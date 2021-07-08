@@ -6,6 +6,7 @@ import cuchaz.enigma.gui.Gui;
 import cuchaz.enigma.gui.renderer.StructureOptionListCellRenderer;
 import cuchaz.enigma.gui.util.GridBagConstraintsBuilder;
 import cuchaz.enigma.gui.util.GuiUtil;
+import cuchaz.enigma.gui.util.MouseListenerUtil;
 import cuchaz.enigma.gui.util.SingleTreeSelectionModel;
 import cuchaz.enigma.translation.representation.entry.ClassEntry;
 import cuchaz.enigma.translation.representation.entry.FieldEntry;
@@ -17,10 +18,10 @@ import javax.swing.*;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.TreePath;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class StructurePanel extends JPanel {
+    private final Gui gui;
     private final JPanel optionsPanel;
 
     private final JLabel obfuscationVisibilityLabel = new JLabel();
@@ -34,6 +35,8 @@ public class StructurePanel extends JPanel {
     private final JTree structureTree;
 
     public StructurePanel(Gui gui) {
+        this.gui = gui;
+
         this.optionsPanel = new JPanel(new GridBagLayout());
         this.optionsPanel.setVisible(false);
 
@@ -62,29 +65,29 @@ public class StructurePanel extends JPanel {
         this.structureTree.setCellRenderer(new StructureTreeCellRenderer(gui));
         this.structureTree.setSelectionModel(new SingleTreeSelectionModel());
         this.structureTree.setShowsRootHandles(true);
-        this.structureTree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent event) {
-                if (event.getClickCount() >= 2 && event.getButton() == MouseEvent.BUTTON1) {
-                    // get the selected node
-                    TreePath path = structureTree.getSelectionPath();
-                    if (path == null) {
-                        return;
-                    }
-
-                    Object node = path.getLastPathComponent();
-                    if (node instanceof StructureTreeNode) {
-                        gui.getController().navigateTo(((StructureTreeNode) node).getEntry());
-                    }
-                }
-            }
-        });
+        this.structureTree.addMouseListener(MouseListenerUtil.onClick(this::onClick));
 
         this.retranslateUi();
 
         this.setLayout(new BorderLayout());
         this.add(this.optionsPanel, BorderLayout.NORTH);
         this.add(new JScrollPane(this.structureTree));
+    }
+
+    private void onClick(MouseEvent event) {
+        if (event.getClickCount() >= 2 && event.getButton() == MouseEvent.BUTTON1) {
+            // get the selected node
+            TreePath path = structureTree.getSelectionPath();
+            if (path == null) {
+                return;
+            }
+
+            Object node = path.getLastPathComponent();
+
+            if (node instanceof StructureTreeNode) {
+                this.gui.getController().navigateTo(((StructureTreeNode) node).getEntry());
+            }
+        }
     }
 
     public JPanel getSortingPanel() {
