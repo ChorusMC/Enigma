@@ -72,7 +72,6 @@ public class Gui {
 	private final Set<EditableType> editableTypes;
 	private boolean singleClassTree;
 
-	private final RPanel structureRPanel = new RPanel();
 	private final RPanel callPanel = new RPanel();
 	private final RPanel messagePanel = new RPanel();
 	private final RPanel userPanel = new RPanel();
@@ -141,9 +140,6 @@ public class Gui {
 		this.exportSourceFileChooser.setAcceptAllFileFilterUsed(false);
 
 		this.exportJarFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-
-		this.structureRPanel.getContentPane().setLayout(new BorderLayout());
-		this.structureRPanel.getContentPane().add(this.structurePanel);
 
 		callsTree.setModel(null);
 		callsTree.setCellRenderer(new CallsTreeCellRenderer(this));
@@ -262,7 +258,7 @@ public class Gui {
 		}
 
 		WorkspaceRPanelContainer workspace = this.mainWindow.workspace();
-		workspace.getRightTop().attach(structureRPanel);
+		workspace.getRightTop().attach(structurePanel.getPanel());
 		workspace.getRightTop().attach(inheritanceTree.getPanel());
 		workspace.getRightTop().attach(implementationsTree.getPanel());
 		workspace.getRightTop().attach(callPanel);
@@ -271,7 +267,7 @@ public class Gui {
 		workspace.getRightTop().attach(messagePanel);
 		workspace.getRightBottom().attach(userPanel);
 
-		workspace.addDragTarget(structureRPanel);
+		workspace.addDragTarget(structurePanel.getPanel());
 		workspace.addDragTarget(inheritanceTree.getPanel());
 		workspace.addDragTarget(implementationsTree.getPanel());
 		workspace.addDragTarget(callPanel);
@@ -801,7 +797,6 @@ public class Gui {
 	public void retranslateUi() {
 		this.jarFileChooser.setDialogTitle(I18n.translate("menu.file.jar.open"));
 		this.exportJarFileChooser.setDialogTitle(I18n.translate("menu.file.export.jar"));
-		this.structureRPanel.setTitle(I18n.translate("info_panel.tree.structure"));
 		this.callPanel.setTitle(I18n.translate("info_panel.tree.calls"));
 		this.userPanel.setTitle(I18n.translate("log_panel.users"));
 		this.messagePanel.setTitle(I18n.translate("log_panel.messages"));
@@ -819,6 +814,7 @@ public class Gui {
 		this.editors.values().forEach(EditorPanel::retranslateUi);
 		this.inheritanceTree.retranslateUi();
 		this.implementationsTree.retranslateUi();
+		this.structurePanel.retranslateUi();
 	}
 
 	public void setConnectionState(ConnectionState state) {

@@ -1,8 +1,16 @@
 package cuchaz.enigma.gui.panels;
 
-import cuchaz.enigma.analysis.StructureTreeOptions;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+
+import javax.swing.*;
+import javax.swing.tree.DefaultTreeCellRenderer;
+import javax.swing.tree.TreePath;
+
 import cuchaz.enigma.analysis.StructureTreeNode;
+import cuchaz.enigma.analysis.StructureTreeOptions;
 import cuchaz.enigma.gui.Gui;
+import cuchaz.enigma.gui.elements.rpanel.RPanel;
 import cuchaz.enigma.gui.renderer.StructureOptionListCellRenderer;
 import cuchaz.enigma.gui.util.GridBagConstraintsBuilder;
 import cuchaz.enigma.gui.util.GuiUtil;
@@ -14,14 +22,11 @@ import cuchaz.enigma.translation.representation.entry.MethodEntry;
 import cuchaz.enigma.translation.representation.entry.ParentedEntry;
 import cuchaz.enigma.utils.I18n;
 
-import javax.swing.*;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.TreePath;
-import java.awt.*;
-import java.awt.event.MouseEvent;
-
-public class StructurePanel extends JPanel {
+public class StructurePanel {
     private final Gui gui;
+
+    private final RPanel panel = new RPanel();
+
     private final JPanel optionsPanel;
 
     private final JLabel obfuscationVisibilityLabel = new JLabel();
@@ -69,9 +74,10 @@ public class StructurePanel extends JPanel {
 
         this.retranslateUi();
 
-        this.setLayout(new BorderLayout());
-        this.add(this.optionsPanel, BorderLayout.NORTH);
-        this.add(new JScrollPane(this.structureTree));
+        Container contentPane = this.panel.getContentPane();
+        contentPane.setLayout(new BorderLayout());
+        contentPane.add(this.optionsPanel, BorderLayout.NORTH);
+        contentPane.add(new JScrollPane(this.structureTree));
     }
 
     private void onClick(MouseEvent event) {
@@ -110,12 +116,17 @@ public class StructurePanel extends JPanel {
     }
 
     public void retranslateUi() {
+        this.panel.setTitle(I18n.translate("info_panel.tree.structure"));
         this.obfuscationVisibilityLabel.setText(I18n.translate("structure.options.obfuscation"));
         this.documentationVisibilityLabel.setText(I18n.translate("structure.options.documentation"));
         this.sortingOrderLabel.setText(I18n.translate("structure.options.sorting"));
     }
 
-    class StructureTreeCellRenderer extends DefaultTreeCellRenderer {
+    public RPanel getPanel() {
+        return this.panel;
+    }
+
+    private static class StructureTreeCellRenderer extends DefaultTreeCellRenderer {
         private final Gui gui;
 
         StructureTreeCellRenderer(Gui gui) {
