@@ -14,6 +14,7 @@ package cuchaz.enigma.translation.representation.entry;
 import java.util.Objects;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 
@@ -34,12 +35,12 @@ public class FieldEntry extends ParentedEntry<ClassEntry> implements Comparable<
 		super(parent, name, javadocs);
 
 		Preconditions.checkNotNull(parent, "Owner cannot be null");
-		Preconditions.checkNotNull(desc, "Field descriptor cannot be null");
+		//Preconditions.checkNotNull(desc, "Field descriptor cannot be null");
 
 		this.desc = desc;
 	}
 
-	public static FieldEntry parse(String owner, String name, String desc) {
+	public static FieldEntry parse(String owner, String name, @Nullable String desc) {
 		return new FieldEntry(new ClassEntry(owner), name, new TypeDescriptor(desc), null);
 	}
 
@@ -48,6 +49,7 @@ public class FieldEntry extends ParentedEntry<ClassEntry> implements Comparable<
 		return ClassEntry.class;
 	}
 
+	@Nullable
 	public TypeDescriptor getDesc() {
 		return this.desc;
 	}

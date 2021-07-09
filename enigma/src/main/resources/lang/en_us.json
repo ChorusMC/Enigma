@@ -8,6 +8,7 @@
 	"mapping_format.tiny_file": "Tiny File",
 	"mapping_format.srg_file": "SRG File",
 	"mapping_format.proguard": "Proguard",
+	"mapping_format.rgs": "RGS",
 	"type.methods": "Methods",
 	"type.fields": "Fields",
 	"type.parameters": "Parameters",
@@ -150,6 +151,8 @@
 	"progress.mappings.tiny_v2.loading": "Loading mapping file",
 	"progress.mappings.srg_file.generating": "Generating mappings",
 	"progress.mappings.srg_file.writing": "Writing mappings",
+	"progress.mappings.rgs_file.generating": "Generating mappings",
+	"progress.mappings.rgs_file.writing": "Writing mappings",
 	"progress.stats": "Generating stats",
 	"progress.stats.data": "Generating data",
 

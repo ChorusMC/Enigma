@@ -6,6 +6,8 @@ import cuchaz.enigma.translation.mapping.MappingDelta;
 import cuchaz.enigma.translation.mapping.serde.enigma.EnigmaMappingsReader;
 import cuchaz.enigma.translation.mapping.serde.enigma.EnigmaMappingsWriter;
 import cuchaz.enigma.translation.mapping.serde.proguard.ProguardMappingsReader;
+import cuchaz.enigma.translation.mapping.serde.rgs.RGSReader;
+import cuchaz.enigma.translation.mapping.serde.rgs.RGSWriter;
 import cuchaz.enigma.translation.mapping.serde.srg.SrgMappingsWriter;
 import cuchaz.enigma.translation.mapping.serde.tiny.TinyMappingsReader;
 import cuchaz.enigma.translation.mapping.serde.tiny.TinyMappingsWriter;
@@ -24,7 +26,8 @@ public enum MappingFormat {
 	TINY_V2(new TinyV2Writer("intermediary", "named"), new TinyV2Reader()),
 	TINY_FILE(TinyMappingsWriter.INSTANCE, TinyMappingsReader.INSTANCE),
 	SRG_FILE(SrgMappingsWriter.INSTANCE, null),
-	PROGUARD(null, ProguardMappingsReader.INSTANCE);
+	PROGUARD(null, ProguardMappingsReader.INSTANCE),
+	RGS(RGSWriter.INSTANCE, RGSReader.INSTANCE);
 
 
 	private final MappingsWriter writer;

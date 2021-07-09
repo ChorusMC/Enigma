@@ -17,6 +17,7 @@ public class MappingPair<E extends Entry<?>, M> {
 		this(entry, null);
 	}
 
+	@Nullable
 	public E getEntry() {
 		return entry;
 	}

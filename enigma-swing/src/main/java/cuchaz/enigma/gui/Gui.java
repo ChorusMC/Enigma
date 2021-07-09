@@ -78,6 +78,7 @@ public class Gui implements LanguageChangeListener {
 	public JFileChooser jarFileChooser;
 	public JFileChooser tinyMappingsFileChooser;
 	public JFileChooser enigmaMappingsFileChooser;
+	public JFileChooser rgsMappingsFileChooser;
 	public JFileChooser exportSourceFileChooser;
 	public JFileChooser exportJarFileChooser;
 	public SearchDialog searchDialog;
@@ -148,6 +149,10 @@ public class Gui implements LanguageChangeListener {
 		this.enigmaMappingsFileChooser = new JFileChooser();
 		this.enigmaMappingsFileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
 		this.enigmaMappingsFileChooser.setAcceptAllFileFilterUsed(false);
+
+		this.rgsMappingsFileChooser = new JFileChooser();
+		this.rgsMappingsFileChooser.setDialogTitle("Open RGS Mappings");
+		this.rgsMappingsFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 
 		this.exportSourceFileChooser = new JFileChooser();
 		this.exportSourceFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
