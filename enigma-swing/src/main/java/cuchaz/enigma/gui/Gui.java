@@ -40,7 +40,7 @@ import cuchaz.enigma.gui.dialog.JavadocDialog;
 import cuchaz.enigma.gui.dialog.SearchDialog;
 import cuchaz.enigma.gui.elements.*;
 import cuchaz.enigma.gui.elements.rpanel.RPanel;
-import cuchaz.enigma.gui.elements.rpanel.WorkspaceRPanelContainer;
+import cuchaz.enigma.gui.elements.rpanel.WorkspaceRPanelContainer.DockPosition;
 import cuchaz.enigma.gui.panels.*;
 import cuchaz.enigma.gui.renderer.MessageListCellRenderer;
 import cuchaz.enigma.gui.util.GuiUtil;
@@ -67,8 +67,8 @@ public class Gui {
 	private final Set<EditableType> editableTypes;
 	private boolean singleClassTree;
 
-	private final RPanel messagePanel = new RPanel();
-	private final RPanel userPanel = new RPanel();
+	private final RPanel messagePanel = new RPanel("Messages");
+	private final RPanel userPanel = new RPanel("Users");
 
 	private final MenuBar menuBar;
 	private final ObfPanel obfPanel;
@@ -158,33 +158,14 @@ public class Gui {
 		messagePanel.getContentPane().add(messageScrollPane, BorderLayout.CENTER);
 		messagePanel.getContentPane().add(chatPanel, BorderLayout.SOUTH);
 
-		// restore state
-		int[] layout = UiConfig.getLayout();
-		if (layout.length >= 4) {
-			// this.splitClasses.setDividerLocation(layout[0]);
-			// this.splitCenter.setDividerLocation(layout[1]);
-			// this.splitRight.setDividerLocation(layout[2]);
-			// this.logSplit.setDividerLocation(layout[3]);
-		}
-
-		WorkspaceRPanelContainer workspace = this.mainWindow.workspace();
-		workspace.getRightTop().attach(structurePanel.getPanel());
-		workspace.getRightTop().attach(inheritanceTree.getPanel());
-		workspace.getRightTop().attach(implementationsTree.getPanel());
-		workspace.getRightTop().attach(callsTree.getPanel());
-		workspace.getLeftTop().attach(obfPanel.getPanel());
-		workspace.getLeftBottom().attach(deobfPanel.getPanel());
-		workspace.getRightTop().attach(messagePanel);
-		workspace.getRightBottom().attach(userPanel);
-
-		workspace.addDragTarget(structurePanel.getPanel());
-		workspace.addDragTarget(inheritanceTree.getPanel());
-		workspace.addDragTarget(implementationsTree.getPanel());
-		workspace.addDragTarget(callsTree.getPanel());
-		workspace.addDragTarget(obfPanel.getPanel());
-		workspace.addDragTarget(deobfPanel.getPanel());
-		workspace.addDragTarget(messagePanel);
-		workspace.addDragTarget(userPanel);
+		this.mainWindow.addPanel(DockPosition.RIGHT_TOP, structurePanel.getPanel());
+		this.mainWindow.addPanel(DockPosition.RIGHT_TOP, inheritanceTree.getPanel());
+		this.mainWindow.addPanel(DockPosition.RIGHT_TOP, implementationsTree.getPanel());
+		this.mainWindow.addPanel(DockPosition.RIGHT_TOP, callsTree.getPanel());
+		this.mainWindow.addPanel(DockPosition.LEFT_TOP, obfPanel.getPanel());
+		this.mainWindow.addPanel(DockPosition.LEFT_BOTTOM, deobfPanel.getPanel());
+		this.mainWindow.addPanel(DockPosition.RIGHT_TOP, messagePanel);
+		this.mainWindow.addPanel(DockPosition.RIGHT_BOTTOM, userPanel);
 
 		this.mainWindow.statusBar().addPermanentComponent(this.connectionStatusLabel);
 

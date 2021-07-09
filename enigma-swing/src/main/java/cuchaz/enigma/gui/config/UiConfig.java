@@ -69,27 +69,6 @@ public final class UiConfig {
 		swing.data().section("General").setDouble("Scale Factor", scale);
 	}
 
-	/**
-	 * Gets the dimensions of the different panels of the GUI.
-	 * <p>These dimensions are used to determine the location of the separators between these panels.</p>
-	 *
-	 * <ul>
-	 *     <li>[0] - The height of the obfuscated classes panel</li>
-	 *     <li>[1] - The width of the classes panel</li>
-	 *     <li>[2] - The width of the center panel</li>
-	 *     <li>[3] - The height of the tabs panel. Only used if the logs panel should appear</li>
-	 * </ul>
-	 *
-	 * @return an integer array composed of these 4 dimensions
-	 */
-	public static int[] getLayout() {
-		return swing.data().section("Main Window").getIntArray("Layout").orElseGet(() -> new int[] { -1, -1, -1, -1 });
-	}
-
-	public static void setLayout(int leftV, int left, int right, int rightH) {
-		swing.data().section("Main Window").setIntArray("Layout", new int[] { leftV, left, right, rightH });
-	}
-
 	public static LookAndFeel getLookAndFeel() {
 		return swing.data().section("Themes").setIfAbsentEnum(LookAndFeel::valueOf, "Current", LookAndFeel.NONE);
 	}

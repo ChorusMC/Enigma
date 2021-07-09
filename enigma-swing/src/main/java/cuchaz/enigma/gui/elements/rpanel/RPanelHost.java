@@ -41,4 +41,7 @@ public interface RPanelHost {
 
 	boolean isDedicatedHost();
 
+	@Nullable
+	String getId();
+
 }

@@ -11,14 +11,14 @@ import javax.swing.JSplitPane;
 import cuchaz.enigma.gui.elements.rpanel.DecoratedRPanelContainer.ButtonLocation;
 
 public final class WorkspaceRPanelContainer {
-	private final RPanelContainer leftTop = new RPanelContainer();
-	private final RPanelContainer leftBottom = new RPanelContainer();
-	private final RPanelContainer bottomLeft = new RPanelContainer();
-	private final RPanelContainer bottomRight = new RPanelContainer();
-	private final RPanelContainer rightBottom = new RPanelContainer();
-	private final RPanelContainer rightTop = new RPanelContainer();
-	private final RPanelContainer topRight = new RPanelContainer();
-	private final RPanelContainer topLeft = new RPanelContainer();
+	private final RPanelContainer leftTop = new RPanelContainer("Left Top");
+	private final RPanelContainer leftBottom = new RPanelContainer("Left Bottom");
+	private final RPanelContainer bottomLeft = new RPanelContainer("Bottom Left");
+	private final RPanelContainer bottomRight = new RPanelContainer("Bottom Right");
+	private final RPanelContainer rightBottom = new RPanelContainer("Right Bottom");
+	private final RPanelContainer rightTop = new RPanelContainer("Right Top");
+	private final RPanelContainer topRight = new RPanelContainer("Top Right");
+	private final RPanelContainer topLeft = new RPanelContainer("Top Left");
 
 	private final JPanel ui = new JPanel(new BorderLayout());
 
@@ -191,14 +191,38 @@ public final class WorkspaceRPanelContainer {
 		return topLeft;
 	}
 
-	public void addDragTarget(RPanel panel) {
-		panel.addDragTarget(this.leftTop);
-		panel.addDragTarget(this.leftBottom);
-		panel.addDragTarget(this.bottomLeft);
-		panel.addDragTarget(this.bottomRight);
-		panel.addDragTarget(this.rightBottom);
-		panel.addDragTarget(this.rightTop);
-		panel.addDragTarget(this.topRight);
-		panel.addDragTarget(this.topLeft);
+	public RPanelContainer get(DockPosition pos) {
+		return switch(pos) {
+			case TOP_LEFT -> this.topLeft;
+			case TOP_RIGHT -> this.topRight;
+			case LEFT_TOP -> this.leftTop;
+			case LEFT_BOTTOM -> this.leftBottom;
+			case BOTTOM_LEFT -> this.bottomLeft;
+			case BOTTOM_RIGHT -> this.bottomRight;
+			case RIGHT_TOP -> this.rightTop;
+			case RIGHT_BOTTOM -> this.rightBottom;
+		};
+	}
+
+	public void addToGroup(RPanelGroup group) {
+		group.addHost(this.leftTop);
+		group.addHost(this.leftBottom);
+		group.addHost(this.bottomLeft);
+		group.addHost(this.bottomRight);
+		group.addHost(this.rightBottom);
+		group.addHost(this.rightTop);
+		group.addHost(this.topRight);
+		group.addHost(this.topLeft);
+	}
+
+	public enum DockPosition {
+		TOP_LEFT,
+		TOP_RIGHT,
+		LEFT_TOP,
+		LEFT_BOTTOM,
+		BOTTOM_LEFT,
+		BOTTOM_RIGHT,
+		RIGHT_TOP,
+		RIGHT_BOTTOM,
 	}
 }

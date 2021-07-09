@@ -123,9 +123,9 @@ public class DoubleRPanelContainer {
 		return right;
 	}
 
-	public void addDragTarget(RPanel panel) {
-		panel.addDragTarget(this.left);
-		panel.addDragTarget(this.right);
+	public void addToGroup(RPanelGroup group) {
+		group.addHost(this.left);
+		group.addHost(this.right);
 	}
 
 }

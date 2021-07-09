@@ -14,7 +14,7 @@ import cuchaz.enigma.utils.I18n;
 
 public class ObfPanel {
 
-	private final RPanel panel = new RPanel();
+	private final RPanel panel = new RPanel("Obf Classes");
 
 	public final ClassSelector obfClasses;
 

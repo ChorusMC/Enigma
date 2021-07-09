@@ -16,7 +16,7 @@ import cuchaz.enigma.utils.I18n;
 
 public class DeobfPanel {
 
-	private final RPanel panel = new RPanel();
+	private final RPanel panel = new RPanel("Deobf Classes");
 
 	public final ClassSelector deobfClasses;
 

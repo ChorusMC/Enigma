@@ -18,13 +18,14 @@ import cuchaz.enigma.translation.representation.entry.ClassEntry;
 import cuchaz.enigma.translation.representation.entry.Entry;
 
 public abstract class AbstractInheritanceTree {
-	private final RPanel panel = new RPanel();
+	private final RPanel panel;
 
 	private final JTree tree = new JTree();
 
 	protected final Gui gui;
 
-	public AbstractInheritanceTree(Gui gui, TreeCellRenderer cellRenderer) {
+	public AbstractInheritanceTree(String panelId, Gui gui, TreeCellRenderer cellRenderer) {
+		this.panel = new RPanel(panelId);
 		this.gui = gui;
 
 		this.tree.setModel(null);

@@ -58,8 +58,8 @@ public class DecoratedRPanelContainer {
 		return inner;
 	}
 
-	public void addDragTarget(RPanel panel) {
-		panel.addDragTarget(this.inner);
+	public void addToGroup(RPanelGroup group) {
+		group.addHost(this.inner);
 	}
 
 	public static void initListenerForButtonBar(JComponent ui, RPanelHost panelHost, Consumer<JToggleButton> addCallback, Consumer<JToggleButton> removeCallback) {

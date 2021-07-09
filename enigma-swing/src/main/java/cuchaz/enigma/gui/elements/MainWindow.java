@@ -7,11 +7,15 @@ import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 
 import cuchaz.enigma.config.ConfigSection;
+import cuchaz.enigma.gui.elements.rpanel.RPanel;
+import cuchaz.enigma.gui.elements.rpanel.RPanelGroup;
 import cuchaz.enigma.gui.elements.rpanel.WorkspaceRPanelContainer;
+import cuchaz.enigma.gui.elements.rpanel.WorkspaceRPanelContainer.DockPosition;
 
 public class MainWindow {
 	private final JFrame frame;
 	private final WorkspaceRPanelContainer workspace = new WorkspaceRPanelContainer();
+	private final RPanelGroup panelGroup = new RPanelGroup();
 
 	private final JMenuBar menuBar = new JMenuBar();
 	private final StatusBar statusBar = new StatusBar();
@@ -24,6 +28,8 @@ public class MainWindow {
 		contentPane.setLayout(new BorderLayout());
 		contentPane.add(this.workspace.getUi(), BorderLayout.CENTER);
 		contentPane.add(this.statusBar.getUi(), BorderLayout.SOUTH);
+
+		this.workspace.addToGroup(this.panelGroup);
 	}
 
 	public void setVisible(boolean visible) {
@@ -45,6 +51,8 @@ public class MainWindow {
 		section.setInt("Y %d".formatted(screenSize.height), location.y);
 		section.setInt("Width %d".formatted(screenSize.width), dim.width);
 		section.setInt("Height %d".formatted(screenSize.height), dim.height);
+
+		this.panelGroup.saveState(section.section("Dock Panels"));
 	}
 
 	public void restoreState(ConfigSection section) {
@@ -68,10 +76,17 @@ public class MainWindow {
 				this.frame.setLocation(ix, iy);
 			}
 		}
+
+		this.panelGroup.restoreState(section.section("Dock Panels"));
 	}
 
 	public WorkspaceRPanelContainer workspace() {
 		return this.workspace;
+	}
+
+	public void addPanel(DockPosition dp, RPanel panel) {
+		this.panelGroup.addPanel(panel);
+		this.workspace.get(dp).attach(panel);
 	}
 
 	public JMenuBar menuBar() {

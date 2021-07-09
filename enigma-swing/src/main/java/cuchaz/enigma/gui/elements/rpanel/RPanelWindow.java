@@ -164,7 +164,7 @@ public class RPanelWindow implements RPanelHost {
 	private void onDropped() {
 		if (System.currentTimeMillis() - lastDragOp < 1000) {
 			Rectangle b = this.ui.getBounds();
-			panel.getDragTargets().stream()
+			panel.getGroup().hosts().stream()
 					.filter(t -> t.getDragInsertBounds() != null)
 					.map(t -> new Pair<>(t, getOverlap(b, t.getDragInsertBounds())))
 					.sorted(Comparator.comparingDouble(t -> t.b))
@@ -188,6 +188,12 @@ public class RPanelWindow implements RPanelHost {
 	@Override
 	public boolean isDedicatedHost() {
 		return true;
+	}
+
+	@Nullable
+	@Override
+	public String getId() {
+		return null;
 	}
 
 }

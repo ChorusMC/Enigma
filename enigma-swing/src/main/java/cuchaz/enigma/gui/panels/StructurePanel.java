@@ -26,7 +26,7 @@ import cuchaz.enigma.utils.I18n;
 public class StructurePanel {
     private final Gui gui;
 
-    private final RPanel panel = new RPanel();
+    private final RPanel panel = new RPanel("Structure");
 
     private final JPanel optionsPanel;
 

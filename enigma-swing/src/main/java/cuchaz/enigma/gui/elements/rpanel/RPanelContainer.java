@@ -14,16 +14,20 @@ import javax.swing.JRootPane;
 
 public class RPanelContainer implements RPanelHost {
 
-	private final JPanel ui;
+	private final JPanel ui = new JPanel(new BorderLayout());
+	private final String id;
 
 	private final Map<RPanel, StandaloneRootPane> panels = new HashMap<>();
 	private RPanel openPanel = null;
 
-	private List<RPanelListener> listeners = new ArrayList<>();
+	private final List<RPanelListener> listeners = new ArrayList<>();
 
 	public RPanelContainer() {
-		ui = new JPanel();
-		ui.setLayout(new BorderLayout());
+		this(null);
+	}
+
+	public RPanelContainer(String id) {
+		this.id = id;
 	}
 
 	public JPanel getUi() {
@@ -164,7 +168,13 @@ public class RPanelContainer implements RPanelHost {
 		if (!owns(panel)) return null;
 
 		Rectangle bounds = this.ui.getBounds();
-		bounds.setLocation(this.ui.getLocationOnScreen());
+
+		if (this.ui.isShowing()) {
+			bounds.setLocation(this.ui.getLocationOnScreen());
+		} else {
+			// TODO fix panel location calculation
+		}
+
 		return bounds;
 	}
 
@@ -191,4 +201,9 @@ public class RPanelContainer implements RPanelHost {
 		return false;
 	}
 
+	@Nullable
+	@Override
+	public String getId() {
+		return this.id;
+	}
 }

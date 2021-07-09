@@ -12,7 +12,7 @@ import cuchaz.enigma.utils.I18n;
 
 public class ImplementationsTree extends AbstractInheritanceTree {
 	public ImplementationsTree(Gui gui) {
-		super(gui, new ImplementationsTreeCellRenderer(gui));
+		super("Implementations", gui, new ImplementationsTreeCellRenderer(gui));
 	}
 
 	@Nullable

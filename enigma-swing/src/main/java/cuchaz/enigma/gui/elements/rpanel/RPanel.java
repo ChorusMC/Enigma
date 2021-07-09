@@ -2,28 +2,26 @@ package cuchaz.enigma.gui.elements.rpanel;
 
 import java.awt.Container;
 import java.awt.Rectangle;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.swing.JPanel;
 
 public class RPanel {
-
+	private final String id;
 	private Container contentPane = new JPanel();
 	private String title;
 
 	private RPanelHost host;
-	private final Set<RPanelHost> dndContainers = new HashSet<>();
+	private RPanelGroup group;
 
 	private boolean visible = true;
 
 	public RPanel() {
-		this("");
+		this(null);
 	}
 
-	public RPanel(String title) {
-		this.title = title;
+	public RPanel(String id) {
+		this.id = id;
 	}
 
 	public Container getContentPane() {
@@ -80,7 +78,7 @@ public class RPanel {
 		if (currentPos != null) host.tryMoveTo(this, currentPos);
 	}
 
-	public void setOwner(RPanelHost host) {
+	public void setOwner(@Nullable RPanelHost host) {
 		if (host != null && !host.owns(this)) throw new IllegalStateException(String.format("Received request to set owner of panel to %s, but that says it doesn't own this panel!", host));
 
 		if (this.host != null) {
@@ -88,6 +86,23 @@ public class RPanel {
 		}
 
 		this.host = host;
+	}
+
+	@Nullable
+	public RPanelHost getHost() {
+		return this.host;
+	}
+
+	public void setGroup(@Nullable RPanelGroup group) {
+		if (group != null && !group.contains(this)) {
+			throw new IllegalStateException("Received request to set group of panel to %s, but that says it doesn't contain this panel!".formatted(group));
+		}
+
+		if (this.group != null) {
+			this.group.removePanel(this);
+		}
+
+		this.group = group;
 	}
 
 	public void setVisible(boolean visible) {
@@ -115,16 +130,12 @@ public class RPanel {
 		return title;
 	}
 
-	public void addDragTarget(RPanelHost host) {
-		dndContainers.add(host);
+	@Nullable
+	public String getId() {
+		return this.id;
 	}
 
-	public void removeDragTarget(RPanelHost host) {
-		dndContainers.remove(host);
+	public RPanelGroup getGroup() {
+		return this.group;
 	}
-
-	public Set<RPanelHost> getDragTargets() {
-		return Collections.unmodifiableSet(dndContainers);
-	}
-
 }

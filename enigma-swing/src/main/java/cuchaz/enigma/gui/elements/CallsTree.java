@@ -25,7 +25,7 @@ import cuchaz.enigma.translation.representation.entry.MethodEntry;
 import cuchaz.enigma.utils.I18n;
 
 public class CallsTree {
-	private final RPanel panel = new RPanel();
+	private final RPanel panel = new RPanel("Calls");
 
 	private final JTree callsTree = new JTree();
 	private final JList<Token> tokens = new JList<>();
