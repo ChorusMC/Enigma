@@ -1,23 +1,30 @@
 package cuchaz.enigma.gui.util;
 
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.*;
+import java.awt.font.TextAttribute;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.function.Consumer;
+
+import javax.swing.*;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
+
 import com.formdev.flatlaf.extras.FlatSVGIcon;
+import com.google.common.collect.Lists;
+
 import cuchaz.enigma.gui.Gui;
 import cuchaz.enigma.translation.representation.AccessFlags;
 import cuchaz.enigma.translation.representation.entry.ClassEntry;
 import cuchaz.enigma.translation.representation.entry.MethodEntry;
 import cuchaz.enigma.utils.Os;
-
-import javax.swing.*;
-import java.awt.*;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.font.TextAttribute;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Map;
-import java.util.NoSuchElementException;
 
 public class GuiUtil {
     public static final Icon CLASS_ICON = loadIcon("class");
@@ -134,5 +141,45 @@ public class GuiUtil {
             return CONSTRUCTOR_ICON;
         }
         return METHOD_ICON;
+    }
+
+    public static TreePath getPathToRoot(TreeNode node) {
+        List<TreeNode> nodes = Lists.newArrayList();
+        TreeNode n = node;
+
+        do {
+            nodes.add(n);
+            n = n.getParent();
+        } while (n != null);
+
+        Collections.reverse(nodes);
+        return new TreePath(nodes.toArray());
+    }
+
+    public static MouseListener onMouseClick(Consumer<MouseEvent> op) {
+        return new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                op.accept(e);
+            }
+        };
+    }
+
+    public static MouseListener onMousePress(Consumer<MouseEvent> op) {
+        return new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                op.accept(e);
+            }
+        };
+    }
+
+    public static WindowListener onWindowClose(Consumer<WindowEvent> op) {
+        return new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                op.accept(e);
+            }
+        };
     }
 }

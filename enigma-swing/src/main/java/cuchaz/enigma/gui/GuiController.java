@@ -85,6 +85,8 @@ public class GuiController implements ClientPacketHandler {
 	private EnigmaClient client;
 	private EnigmaServer server;
 
+	private History<EntryReference<Entry<?>, Entry<?>>> referenceHistory;
+
 	public GuiController(Gui gui, EnigmaProfile profile) {
 		this.gui = gui;
 		this.enigma = Enigma.builder()
@@ -299,53 +301,46 @@ public class GuiController implements ClientPacketHandler {
 		if (reference == null) {
 			throw new IllegalArgumentException("Reference cannot be null!");
 		}
-		if (this.gui.referenceHistory == null) {
-			this.gui.referenceHistory = new History<>(reference);
+		if (this.referenceHistory == null) {
+			this.referenceHistory = new History<>(reference);
 		} else {
-			if (!reference.equals(this.gui.referenceHistory.getCurrent())) {
-				this.gui.referenceHistory.push(reference);
+			if (!reference.equals(this.referenceHistory.getCurrent())) {
+				this.referenceHistory.push(reference);
 			}
 		}
-		setReference(reference);
+
+		this.gui.showReference(reference);
 	}
 
-	/**
-	 * Navigates to the reference without modifying history. If the class is not currently loaded, it will be loaded.
-	 *
-	 * @param reference the reference
-	 */
-	private void setReference(EntryReference<Entry<?>, Entry<?>> reference) {
-		gui.openClass(reference.getLocationClassEntry().getOutermostClass()).showReference(reference);
-	}
-
-	public Collection<Token> getTokensForReference(DecompiledClassSource source, EntryReference<Entry<?>, Entry<?>> reference) {
+	public List<Token> getTokensForReference(DecompiledClassSource source, EntryReference<Entry<?>, Entry<?>> reference) {
 		EntryRemapper mapper = this.project.getMapper();
 
 		SourceIndex index = source.getIndex();
 		return mapper.getObfResolver().resolveReference(reference, ResolutionStrategy.RESOLVE_CLOSEST)
 				.stream()
 				.flatMap(r -> index.getReferenceTokens(r).stream())
+				.sorted()
 				.toList();
 	}
 
 	public void openPreviousReference() {
 		if (hasPreviousReference()) {
-			setReference(gui.referenceHistory.goBack());
+			this.gui.showReference(referenceHistory.goBack());
 		}
 	}
 
 	public boolean hasPreviousReference() {
-		return gui.referenceHistory != null && gui.referenceHistory.canGoBack();
+		return referenceHistory != null && referenceHistory.canGoBack();
 	}
 
 	public void openNextReference() {
 		if (hasNextReference()) {
-			setReference(gui.referenceHistory.goForward());
+			this.gui.showReference(referenceHistory.goForward());
 		}
 	}
 
 	public boolean hasNextReference() {
-		return gui.referenceHistory != null && gui.referenceHistory.canGoForward();
+		return referenceHistory != null && referenceHistory.canGoForward();
 	}
 
 	public void navigateTo(Entry<?> entry) {

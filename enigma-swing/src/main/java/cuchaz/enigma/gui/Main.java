@@ -25,6 +25,7 @@ import joptsimple.*;
 import cuchaz.enigma.EnigmaProfile;
 import cuchaz.enigma.gui.config.Themes;
 import cuchaz.enigma.gui.config.UiConfig;
+import cuchaz.enigma.gui.dialog.CrashDialog;
 import cuchaz.enigma.translation.mapping.serde.MappingFormat;
 import cuchaz.enigma.utils.I18n;
 
@@ -112,6 +113,17 @@ public class Main {
 			
 			if (options.has("single-class-tree")) {
 				gui.setSingleClassTree(true);
+			}
+
+			if (Boolean.parseBoolean(System.getProperty("enigma.catchExceptions", "true"))) {
+				// install a global exception handler to the event thread
+				CrashDialog.init(gui.getFrame());
+				Thread.setDefaultUncaughtExceptionHandler((thread, t) -> {
+					t.printStackTrace(System.err);
+					if (!ExceptionIgnorer.shouldIgnore(t)) {
+						CrashDialog.show(t);
+					}
+				});
 			}
 
 			if (options.has(jar)) {

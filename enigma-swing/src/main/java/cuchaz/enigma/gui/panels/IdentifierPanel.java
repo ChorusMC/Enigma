@@ -33,7 +33,7 @@ public class IdentifierPanel {
 
 	private final Gui gui;
 
-	private final JPanel ui;
+	private final JPanel ui = new JPanel();
 
 	private Entry<?> entry;
 	private Entry<?> deobfEntry;
@@ -45,7 +45,6 @@ public class IdentifierPanel {
 	public IdentifierPanel(Gui gui) {
 		this.gui = gui;
 
-		this.ui = new JPanel();
 		this.ui.setLayout(new GridBagLayout());
 		this.ui.setPreferredSize(ScaleUtil.getDimension(0, 120));
 		this.ui.setBorder(BorderFactory.createTitledBorder(I18n.translate("info_panel.identifier")));

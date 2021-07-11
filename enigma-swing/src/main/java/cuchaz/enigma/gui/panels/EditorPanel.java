@@ -518,7 +518,7 @@ public class EditorPanel {
 		if (this.source == null) return;
 		if (reference == null) return;
 
-		Collection<Token> tokens = this.controller.getTokensForReference(this.source, reference);
+		List<Token> tokens = this.controller.getTokensForReference(this.source, reference);
 		if (tokens.isEmpty()) {
 			// DEBUG
 			System.err.println(String.format("WARNING: no tokens found for %s in %s", reference, this.classHandle.getRef()));
